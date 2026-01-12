@@ -608,6 +608,30 @@
         #credits-popup button:active {
             transform: scale(0.98) !important;
         }
+
+        /* CREDITS MODAL SCROLLING FIX */
+        .credits-modal-inner {
+            background: linear-gradient(135deg, #004C54 0%, #000814 50%, #000 100%);
+            padding: 50px 40px;
+            border-radius: 20px;
+            max-width: 550px;
+            width: 90%;
+            border: 4px solid #FFD700;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.8), 0 0 30px rgba(0,76,84,0.5);
+            position: relative;
+            overflow: hidden;
+            max-height: 85vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 600px) {
+            .credits-modal-inner {
+                padding: 30px 20px;
+                width: 95%;
+                max-height: 80vh;
+            }
+        }
     </style>
 </head>
 <body>
@@ -752,30 +776,22 @@
     <!-- CREDITS POPUP -->
     <div id="credits-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                                      background: rgba(0,0,0,0.9); z-index: 1000;
-                                     justify-content: center; align-items: center;">
-        <div style="background: linear-gradient(135deg, #004C54 0%, #000814 50%, #000 100%);
-                    padding: 50px 40px; border-radius: 20px; max-width: 550px; width: 90%;
-                    border: 4px solid #FFD700; box-shadow: 0 10px 50px rgba(0,0,0,0.8), 0 0 30px rgba(0,76,84,0.5);
-                    position: relative; overflow: hidden;">
+                                     justify-content: center; align-items: center; padding: 20px;">
+        <div class="credits-modal-inner">
 
-            <!-- Decorative Eagles wings -->
-            <div style="position: absolute; top: 10px; left: 10px; font-size: 3rem; opacity: 0.15;">🦅</div>
-            <div style="position: absolute; top: 10px; right: 10px; font-size: 3rem; opacity: 0.15; transform: scaleX(-1);">🦅</div>
-            <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 2rem; opacity: 0.1;">🏈</div>
-
-            <div style="font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: #FFD700;
+            <div style="font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: #FFD700;
                         text-align: center; margin-bottom: 15px; text-shadow: 3px 3px 0 #000, 0 0 20px rgba(255,215,0,0.6);
                         letter-spacing: 3px;">
-                🦅 THANK YOU 🦅
+                THANK YOU
             </div>
 
             <div style="font-family: 'Oswald', sans-serif; font-size: 1rem; color: #A5ACAF;
                         text-align: center; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;">
-                ━━━ Fly Eagles Fly ━━━
+                Fly Eagles Fly
             </div>
 
             <div style="font-family: 'Oswald', sans-serif; font-size: 1.1rem; color: #fff;
-                        text-align: center; margin-bottom: 30px; line-height: 1.7;
+                        text-align: center; margin-bottom: 25px; line-height: 1.7;
                         background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;
                         border-left: 3px solid #FFD700;">
                 In loving memory of <strong style="color: #FFD700;">Robert Macintire</strong>,<br>
@@ -783,62 +799,60 @@
                 <span style="font-size: 0.9rem; color: #A5ACAF; font-style: italic;">A true Philly fan forever.</span>
             </div>
 
-            <!-- Eagles Autism Foundation -->
             <div style="background: linear-gradient(135deg, rgba(0,198,167,0.2) 0%, rgba(0,198,167,0.05) 100%);
-                        padding: 25px 20px; border-radius: 12px; margin-bottom: 20px;
+                        padding: 20px; border-radius: 12px; margin-bottom: 15px;
                         border: 2px solid #00C6A7; box-shadow: 0 0 15px rgba(0,198,167,0.3);">
-                <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: #00C6A7;
-                            text-align: center; margin-bottom: 12px; text-shadow: 1px 1px 2px #000;
+                <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: #00C6A7;
+                            text-align: center; margin-bottom: 10px; text-shadow: 1px 1px 2px #000;
                             letter-spacing: 1px;">
-                    🧩 Support Eagles Autism Foundation
+                    Support Eagles Autism Foundation
                 </div>
                 <div style="font-family: 'Oswald', sans-serif; font-size: 0.85rem; color: #A5ACAF;
-                            text-align: center; margin-bottom: 12px; line-height: 1.4;">
+                            text-align: center; margin-bottom: 10px; line-height: 1.4;">
                     Making a real difference in the community
                 </div>
                 <a href="https://donate.eaglesautismfoundation.org/donations/new?event=772a444ceb60b5044aad"
                    target="_blank"
                    style="display: block; background: linear-gradient(135deg, #00C6A7 0%, #008C7A 100%);
-                          color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none;
-                          font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; text-align: center;
+                          color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none;
+                          font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; text-align: center;
                           transition: all 0.3s ease; border: 2px solid #00C6A7;
                           box-shadow: 0 4px 15px rgba(0,198,167,0.4); letter-spacing: 1px;">
-                    🧩 DONATE NOW
+                    DONATE NOW
                 </a>
             </div>
 
-            <!-- Buy Dev a Beer -->
             <div style="background: linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(255,215,0,0.05) 100%);
-                        padding: 25px 20px; border-radius: 12px; margin-bottom: 25px;
+                        padding: 20px; border-radius: 12px; margin-bottom: 20px;
                         border: 2px solid #FFB612; box-shadow: 0 0 15px rgba(255,182,18,0.3);">
-                <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: #FFD700;
-                            text-align: center; margin-bottom: 12px; text-shadow: 1px 1px 2px #000;
+                <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: #FFD700;
+                            text-align: center; margin-bottom: 10px; text-shadow: 1px 1px 2px #000;
                             letter-spacing: 1px;">
-                    🍺 Buy the Dev a Beer
+                    Buy the Dev a Beer
                 </div>
                 <div style="font-family: 'Oswald', sans-serif; font-size: 0.85rem; color: #A5ACAF;
-                            text-align: center; margin-bottom: 12px; line-height: 1.4;">
+                            text-align: center; margin-bottom: 10px; line-height: 1.4;">
                     Support more Philly sports satire
                 </div>
                 <a href="https://venmo.com/Sanger"
                    target="_blank"
                    style="display: block; background: linear-gradient(135deg, #008CFF 0%, #0066CC 100%);
-                          color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none;
-                          font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; text-align: center;
+                          color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none;
+                          font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; text-align: center;
                           transition: all 0.3s ease; border: 2px solid #008CFF;
                           box-shadow: 0 4px 15px rgba(0,140,255,0.4); letter-spacing: 1px;">
-                    🍺 VENMO @SANGER
+                    VENMO @SANGER
                 </a>
             </div>
 
             <button onclick="closeCreditsPopup()"
                     style="width: 100%; background: linear-gradient(135deg, #004C54 0%, #003340 100%);
-                           color: #FFD700; border: 3px solid #FFD700; padding: 15px;
+                           color: #FFD700; border: 3px solid #FFD700; padding: 12px;
                            border-radius: 10px; font-family: 'Bebas Neue', sans-serif;
-                           font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease;
+                           font-size: 1.3rem; cursor: pointer; transition: all 0.3s ease;
                            box-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: 2px;
                            text-shadow: 1px 1px 2px #000;">
-                ⬅️ BACK TO THE RAGE
+                BACK TO THE GAME
             </button>
         </div>
     </div>
@@ -2980,37 +2994,114 @@
         }
 
         function equipErinAndrewsCoat() {
-            showQuote("Weather Protection: MAX", kevin.head.position);
+            showQuote("SIDELINE CHIC", kevin.head.position);
 
-            // Scale up the torso physics body to simulate the giant coat
-            Body.scale(kevin.torso, 1.5, 1.5);
-            kevin.torso.restitution = 1.2; // Super bouncy
+            // 1. PHYSICS: Floaty and bouncy
+            Body.scale(kevin.torso, 1.6, 1.6);
+            kevin.torso.restitution = 1.2;
 
-            // Add visual coat emoji overlay attached to torso
+            const originalTorsoFriction = kevin.torso.frictionAir;
+            const originalHeadFriction = kevin.head.frictionAir;
+            kevin.torso.frictionAir = 0.1;
+            kevin.head.frictionAir = 0.1;
+
+            // 2. VISUALS: Clean puffy coat
             const coat = document.createElement('div');
-            coat.textContent = '🧥';
-            coat.style.cssText = `position: absolute; font-size: 100px; pointer-events: none; z-index: 50;`;
+            coat.style.cssText = `
+                position: absolute;
+                pointer-events: none;
+                z-index: 50;
+                width: 140px;
+                height: 160px;
+                filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            `;
+
+            coat.innerHTML = `
+                <!-- Main body -->
+                <div style="
+                    position: absolute;
+                    width: 100%; height: 100%;
+                    background: linear-gradient(180deg, #FAFAFA 0%, #F0F0F0 50%, #E8E8E8 100%);
+                    border-radius: 20px 20px 30px 30px;
+                    border: 2px solid #DDD;
+                "></div>
+                <!-- Left sleeve -->
+                <div style="
+                    position: absolute;
+                    width: 35px; height: 70px;
+                    left: -20px; top: 25px;
+                    background: linear-gradient(90deg, #E8E8E8 0%, #F5F5F5 100%);
+                    border-radius: 20px;
+                    border: 2px solid #DDD;
+                "></div>
+                <!-- Right sleeve -->
+                <div style="
+                    position: absolute;
+                    width: 35px; height: 70px;
+                    right: -20px; top: 25px;
+                    background: linear-gradient(270deg, #E8E8E8 0%, #F5F5F5 100%);
+                    border-radius: 20px;
+                    border: 2px solid #DDD;
+                "></div>
+                <!-- Collar -->
+                <div style="
+                    position: absolute;
+                    width: 60px; height: 25px;
+                    left: 50%; top: -5px;
+                    transform: translateX(-50%);
+                    background: linear-gradient(180deg, #F5F5F5 0%, #E0E0E0 100%);
+                    border-radius: 10px 10px 0 0;
+                    border: 2px solid #DDD;
+                    border-bottom: none;
+                "></div>
+                <!-- Center seam -->
+                <div style="
+                    position: absolute;
+                    width: 2px; height: 80%;
+                    left: 50%; top: 15%;
+                    transform: translateX(-50%);
+                    background: #DDD;
+                "></div>
+            `;
             document.getElementById('game-container').appendChild(coat);
 
-            // Simple loop to follow torso
+            // 3. EFFECT: Paparazzi Flashes (faster for 3s duration)
+            const flashInterval = setInterval(() => {
+                if (Math.random() > 0.4) {
+                    createImpactFlash({
+                        x: kevin.head.position.x + (Math.random() - 0.5) * 250,
+                        y: kevin.head.position.y + (Math.random() - 0.5) * 250
+                    });
+                }
+            }, 120);
+
+            // 4. LOOP: Sync position
             const coatInterval = setInterval(() => {
-                if (!kevin.torso) { clearInterval(coatInterval); coat.remove(); return; }
+                if (!kevin.torso) { cleanupCoat(); return; }
+
                 const pos = kevin.torso.position;
-                coat.style.left = (pos.x - 50) + 'px';
+                coat.style.left = (pos.x - 70) + 'px';
                 coat.style.top = (pos.y - 60) + 'px';
                 coat.style.transform = `rotate(${kevin.torso.angle}rad)`;
             }, 16);
 
-            // Success sound
             playSuccessSound();
 
-            // Remove after 10 seconds
-            setTimeout(() => {
+            // 5. CLEANUP
+            function cleanupCoat() {
                 clearInterval(coatInterval);
+                clearInterval(flashInterval);
                 coat.remove();
-                Body.scale(kevin.torso, 0.66, 0.66); // Scale back down
-                kevin.torso.restitution = CONFIG.BOUNCE; // Reset bounce
-            }, 10000);
+
+                if (kevin.torso) {
+                    Body.scale(kevin.torso, 0.625, 0.625); // 1/1.6
+                    kevin.torso.restitution = CONFIG.BOUNCE;
+                    kevin.torso.frictionAir = originalTorsoFriction;
+                    kevin.head.frictionAir = originalHeadFriction;
+                }
+            }
+
+            setTimeout(cleanupCoat, 3000);
         }
 
         function triggerPositivityRabbit() {
