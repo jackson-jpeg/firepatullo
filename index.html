@@ -500,14 +500,14 @@
         /* HIGHWAY SIGN */
         .highway-sign {
             position: absolute;
-            top: 50px;
-            right: 20%;
+            top: 90px;
+            left: max(10px, env(safe-area-inset-left));
             background: #006B3C;
             border: 3px solid white;
             padding: 8px 15px;
             border-radius: 5px;
             z-index: 50;
-            transform: perspective(200px) rotateY(-5deg);
+            transform: perspective(200px) rotateY(5deg);
         }
         
         .highway-sign-text {
@@ -548,7 +548,12 @@
             }
             
             .highway-sign {
-                display: none;
+                top: 85px;
+                padding: 5px 10px;
+            }
+
+            .highway-sign-text {
+                font-size: 0.55rem;
             }
         }
 
