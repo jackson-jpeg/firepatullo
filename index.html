@@ -520,15 +520,6 @@
         
         /* MOBILE ADJUSTMENTS */
         @media (max-width: 600px) {
-            #mobile-credits-btn {
-                display: block !important;
-            }
-
-            #mobile-credits-btn:hover {
-                transform: scale(1.1);
-                background: rgba(0,0,0,0.95);
-            }
-
             #arsenal-container {
                 bottom: max(50px, calc(40px + env(safe-area-inset-bottom)));
                 gap: 5px;
@@ -548,15 +539,20 @@
             }
             
             .highway-sign {
-                top: 110px;
+                display: block !important; /* Force visibility on mobile */
+                top: 120px; /* Push below Job Security meter */
+                left: 10px; /* Align with left edge */
                 padding: 6px 10px;
                 z-index: 150;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+                transform: rotateY(0deg); /* Flatten for better mobile readability */
+                max-width: 150px; /* Prevent hitting center elements */
             }
 
             .highway-sign-text {
                 font-size: 0.6rem;
-                white-space: nowrap;
+                white-space: normal; /* Allow text wrapping if needed */
+                line-height: 1.2;
             }
         }
 
@@ -595,16 +591,6 @@
     <!-- MAIN GAME -->
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
-
-        <!-- MOBILE CREDITS BUTTON -->
-        <div id="mobile-credits-btn" onclick="showCreditsPopup()"
-             style="position: absolute; top: max(10px, env(safe-area-inset-top)); right: max(60px, calc(60px + env(safe-area-inset-right)));
-                    font-size: 28px; z-index: 100; cursor: pointer; display: none;
-                    background: rgba(0,0,0,0.8); padding: 8px 12px; border-radius: 50%;
-                    border: 2px solid var(--eagles-silver); transition: all 0.3s ease;"
-             title="Credits & Support">
-            ℹ️
-        </div>
 
         <!-- HIGHWAY SIGN (CLICKABLE) -->
         <div class="highway-sign" onclick="showCreditsPopup()" style="cursor: pointer;" title="Click for credits & support">
