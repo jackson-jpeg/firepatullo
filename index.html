@@ -33,8 +33,10 @@
             background: linear-gradient(135deg, var(--midnight-green) 0%, var(--eagles-black) 100%);
             min-height: 100vh;
             overflow: auto;
+            touch-action: manipulation; /* Disables double-tap zoom natively */
+            -webkit-user-select: none;
             user-select: none;
-            touch-action: pan-x pan-y; /* Allow scrolling but block pinch-zoom */
+            -webkit-tap-highlight-color: transparent;
             /* Safe area insets for iPhone notch/dynamic island */
             padding-top: env(safe-area-inset-top);
             padding-right: env(safe-area-inset-right);
@@ -116,6 +118,11 @@
             display: block;
             width: 100%;
             height: 100%;
+            pointer-events: auto !important; /* Ensure canvas is always clickable */
+            touch-action: manipulation; /* Disables double-tap zoom natively */
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         
         /* UI OVERLAY */
@@ -1602,7 +1609,6 @@
         }
         
         function onPointerDown(e) {
-            e.preventDefault();
             resetActivity(); // Track user activity
             const pos = getPointerPos(e);
 
@@ -1612,6 +1618,11 @@
             for (let body of bodies) {
                 if (Matter.Bounds.contains(body.bounds, pos)) {
                     hitKevin = true;
+
+                    // Only preventDefault when we're actually grabbing Kevin
+                    // This prevents the browser from interfering with the drag
+                    e.preventDefault();
+
                     // EASTER EGG: Triple-click on head for secret
                     if (body === kevin.head) {
                         const now = Date.now();
@@ -4374,108 +4385,23 @@
             }
         });
         
-        // ==================== NUCLEAR ZOOM PREVENTION ====================
+        // ==================== SIMPLE ZOOM PREVENTION ====================
+        // Use native browser capabilities via CSS touch-action: manipulation
+        // Only block multi-touch pinch zoom and trackpad zoom
 
-        // BLOCK EVERYTHING THAT COULD CAUSE ZOOM
-
-        // 1. Block ALL gesture events (pinch zoom)
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return false;
-        }, { passive: false, capture: true });
-
-        document.addEventListener('gesturechange', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return false;
-        }, { passive: false, capture: true });
-
-        document.addEventListener('gestureend', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return false;
-        }, { passive: false, capture: true });
-
-        // 2. Block ALL multi-touch (2+ fingers)
+        // 1. Block multi-touch pinch zoom (2+ fingers)
         document.addEventListener('touchstart', function(e) {
             if (e.touches.length > 1) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                return false;
+                e.preventDefault(); // Blocks pinch-zoom
             }
-        }, { passive: false, capture: true });
+        }, { passive: false });
 
-        document.addEventListener('touchmove', function(e) {
-            if (e.touches.length > 1) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                return false;
-            }
-        }, { passive: false, capture: true });
-
-        // 3. AGGRESSIVE multi-tap prevention - block rapid taps
-        const tapTimes = [];
-        let blockAllTaps = false;
-        let blockTimeout = null;
-
-        document.addEventListener('touchend', function(e) {
-            const now = Date.now();
-
-            // If we're in block mode, block everything
-            if (blockAllTaps) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                return false;
-            }
-
-            // Clean old taps
-            while (tapTimes.length > 0 && now - tapTimes[0] > 1000) {
-                tapTimes.shift();
-            }
-
-            tapTimes.push(now);
-
-            // If more than 1 tap in 400ms - ENTER BLOCK MODE for 500ms
-            const recentTaps = tapTimes.filter(time => now - time <= 400);
-            if (recentTaps.length > 1) {
-                blockAllTaps = true;
-                clearTimeout(blockTimeout);
-                blockTimeout = setTimeout(() => {
-                    blockAllTaps = false;
-                    tapTimes.length = 0; // Clear all taps
-                }, 500);
-
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                return false;
-            }
-        }, { passive: false, capture: true });
-
-        // 4. Block wheel/trackpad zoom
+        // 2. Block trackpad pinch zoom (Chrome Mac)
         document.addEventListener('wheel', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
+            if (e.ctrlKey) {
+                e.preventDefault(); // Blocks Ctrl+Wheel (pinch emulation)
             }
-        }, { passive: false, capture: true });
-
-        // 5. Block keyboard zoom (Ctrl/Cmd + Plus/Minus)
-        document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }
-        }, { passive: false, capture: true });
+        }, { passive: false });
 
         // ==================== START ====================
         document.addEventListener('DOMContentLoaded', runLoadingScreen);
