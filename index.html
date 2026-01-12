@@ -711,6 +711,12 @@
         <div style="margin-top: 20px; font-family: 'Press Start 2P', monospace; font-size: 0.6rem; color: #888;">
             In Loving Memory of Robert Macintire
         </div>
+
+        <a href="https://venmo.com/sanger" target="_blank"
+           style="display: inline-block; margin-top: 15px; font-family: 'Oswald', sans-serif;
+                  font-size: 0.7rem; color: #555; text-decoration: none; transition: color 0.3s ease;">
+            <span style="opacity: 0.6;">🍺 buy the dev a beer</span>
+        </a>
     </div>
 
     <!-- CREDITS POPUP -->
@@ -880,26 +886,24 @@
         
         // ==================== TICKER HEADLINES ====================
         const TICKER_HEADLINES = [
-            "🔴 BREAKING: Lane Johnson calls offense 'predictable' again...",
-            "📉 REPORT: Saquon Barkley still in a 'funk', searching for rushing yards...",
-            "📱 UPDATE: A.J. Brown ends live stream after rant...",
-            "📈 TIKTOK TREND: 'Life Before Kevin' videos up 400%...",
-            "🎙️ SOURCES: Sirianni says he has 'right people' despite Wild Card exit...",
-            "🏈 Eagles offense: Zero points in second halves this season",
-            "💀 Fan patience at all-time low after 49ers loss",
-            "🔥 'Three-way monster' offense more like three-way disaster",
-            "📊 Screen pass attempts: 847 | Touchdowns: 3",
-            "🎯 firepatullo.com traffic up 10,000% this week",
-            "🦅 POLL: 94% of fans want offensive coordinator fired",
-            "📻 94WIP callers flooding lines demanding change",
-            "⚡ FLASHBACK: Remember when we had an offensive identity?",
-            "🎪 ANALYSIS: Is Kevin Patullo the most hated man in Philadelphia?",
-            "🏟️ REPORT: Lincoln Financial Field installing more boo speakers",
-            "📉 STAT: Eagles rank 21st in total offense, 20th in rushing",
-            "🤔 QUESTION: Does Kevin know what a 'deep ball' is?",
-            "📺 BREAKING: NFL investigating Eagles for screen pass abuse",
-            "🦅 UPDATE: Kelce considering un-retiring just to yell at Kevin",
-            "💬 QUOTE: 'We've had a great experience here in Philadelphia' - Kevin Patullo"
+            "🚨 LIVE: 'Tony from South Philly' has been on hold with WIP for 47 hours...",
+            "📊 STAT: Kevin Patullo's 'Screen Pass' percentage is higher than his approval rating...",
+            "🌻 SIGHTING: Sirianni seen watering a dead flower in the NovaCare parking lot...",
+            "🏪 BREAKING: Kevin Patullo banned from all Wawa locations until offense improves...",
+            "😤 UPDATE: Saquon Barkley just sighed loudly during a team meeting...",
+            "🎬 REPLAY: That 3rd & 9 Draw Play is now being investigated by the FBI...",
+            "🧥 SOURCES: The 'Three-Way Monster' was actually just three screen passes in a trench coat...",
+            "📣 REPORT: The 'Fire Kevin' chants are now audible from space...",
+            "💰 FINANCES: Eagles fans start GoFundMe to buy out remaining contract...",
+            "🧠 STRATEGY: 'We just need to execute' - Man who has not executed in 18 weeks...",
+            "📄 LEAK: The offensive playbook is just a napkin with 'THROW IT TO AJ??' written on it...",
+            "🌡️ THERMOSTAT: Jalen Hurts says he is 'setting the temperature' (The temperature is zero)...",
+            "🤕 INJURY REPORT: Fan base listed as 'Doubtful' (Mental Anguish)...",
+            "🛩️ FLIGHT TRACKER: Searching private jets from Philly to... literally anywhere else...",
+            "🔢 ANALYTICS: Punting on 1st down currently yields higher EPA than this offense...",
+            "🤐 MEDIA: A.J. Brown has declined to speak to the media (smart move)...",
+            "🧂 SALT: 49ers fans still tweeting about 2023 NFC Championship game...",
+            "🚗 TRAFFIC: I-95 South backed up with fans leaving at halftime..."
         ];
         
         // ==================== GAME STATE ====================
@@ -2698,164 +2702,67 @@
         }
         
         function triggerBigDom() {
-            // Warning indicator
-            const warning = document.createElement('div');
-            warning.textContent = '⚠️ INCOMING: BIG DOM! ⚠️';
-            warning.style.cssText = `
-                position: absolute;
-                top: 100px;
-                left: 50%;
-                transform: translateX(-50%);
-                font-family: 'Bebas Neue', sans-serif;
-                font-size: 1.5rem;
-                color: #FFD700;
-                text-shadow: 2px 2px 0 #000;
-                z-index: 310;
-                animation: warningBounce 0.3s ease infinite;
-            `;
-            document.getElementById('game-container').appendChild(warning);
-
-            if (!document.getElementById('warning-bounce-style')) {
+            // Add flashFade animation if not exists
+            if (!document.getElementById('flash-fade-style')) {
                 const style = document.createElement('style');
-                style.id = 'warning-bounce-style';
+                style.id = 'flash-fade-style';
                 style.textContent = `
-                    @keyframes warningBounce {
-                        0%, 100% { transform: translateX(-50%) scale(1); }
-                        50% { transform: translateX(-50%) scale(1.1); }
+                    @keyframes flashFade {
+                        0% { opacity: 1; }
+                        100% { opacity: 0; }
                     }
                 `;
                 document.head.appendChild(style);
             }
 
-            setTimeout(() => warning.remove(), 2000);
-
-            // Security guard tackles across screen - VISUAL
-            const startX = -150;
-            const y = kevin.torso.position.y;
-
-            // Create visual representation with trailing effect
-            const domVisual = document.createElement('div');
-            domVisual.innerHTML = '🇮🇹💪🏃💨';
-            domVisual.style.cssText = `
-                position: absolute;
-                left: ${startX}px;
-                top: ${y}px;
-                font-size: 80px;
-                z-index: 280;
-                transform: translateY(-50%);
-                filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+            // 1. THE ITALIAN FLASH (Background Overlay)
+            const flash = document.createElement('div');
+            flash.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: linear-gradient(90deg, rgba(0,146,70,0.4) 33%, rgba(255,255,255,0.4) 33%, rgba(255,255,255,0.4) 66%, rgba(206,43,55,0.4) 66%);
+                z-index: 400; pointer-events: none;
+                animation: flashFade 0.5s ease-out forwards;
             `;
-            document.getElementById('game-container').appendChild(domVisual);
+            document.body.appendChild(flash);
 
-            let domX = startX;
-            const speed = 30; // Faster!
-            let dustTrail = [];
+            // 2. THE GIANT FIST (With Super Bowl Ring)
+            const fist = document.createElement('div');
+            fist.innerHTML = '👊💍';
+            fist.style.cssText = `
+                position: absolute;
+                left: -200px;
+                top: ${kevin.head.position.y - 50}px;
+                font-size: 150px;
+                z-index: 450;
+                transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            `;
+            document.getElementById('game-container').appendChild(fist);
 
-            // Animate across screen
-            const animateDom = setInterval(() => {
-                domX += speed;
-                domVisual.style.left = domX + 'px';
+            // 3. THE ANIMATION (Punch connects)
+            setTimeout(() => {
+                // Move fist to Kevin's face instantly
+                fist.style.transform = `translateX(${kevin.head.position.x + 200}px)`;
 
-                // Create dust cloud trail
-                if (Math.random() > 0.5) {
-                    const dust = document.createElement('div');
-                    dust.textContent = '💨';
-                    dust.style.cssText = `
-                        position: absolute;
-                        left: ${domX - 50}px;
-                        top: ${y + 20}px;
-                        font-size: 40px;
-                        opacity: 0.8;
-                        z-index: 275;
-                        animation: dustFade 0.8s ease-out forwards;
-                    `;
-                    document.getElementById('game-container').appendChild(dust);
-                    dustTrail.push(dust);
+                // 4. THE IMPACT (Physics)
+                setTimeout(() => {
+                    // Massive horizontal force
+                    Body.applyForce(kevin.head, kevin.head.position, { x: 0.8, y: -0.2 });
+                    Body.setAngularVelocity(kevin.head, 0.5);
 
-                    if (!document.getElementById('dust-fade-style')) {
-                        const style = document.createElement('style');
-                        style.id = 'dust-fade-style';
-                        style.textContent = `
-                            @keyframes dustFade {
-                                from { opacity: 0.8; transform: scale(1); }
-                                to { opacity: 0; transform: scale(2); }
-                            }
-                        `;
-                        document.head.appendChild(style);
-                    }
-
-                    setTimeout(() => dust.remove(), 800);
-                }
-
-                // Check for collision with Kevin
-                const distToKevin = Math.abs(domX - kevin.torso.position.x);
-                if (distToKevin < 100) {
-                    // TACKLE IMPACT!
-
-                    // Create impact star burst
-                    const impact = document.createElement('div');
-                    impact.innerHTML = '💥💥💥';
-                    impact.style.cssText = `
-                        position: absolute;
-                        left: ${kevin.torso.position.x}px;
-                        top: ${kevin.torso.position.y}px;
-                        font-size: 80px;
-                        transform: translate(-50%, -50%);
-                        z-index: 295;
-                        animation: impactBurst 0.5s ease-out forwards;
-                    `;
-                    document.getElementById('game-container').appendChild(impact);
-
-                    if (!document.getElementById('impact-burst-style')) {
-                        const style = document.createElement('style');
-                        style.id = 'impact-burst-style';
-                        style.textContent = `
-                            @keyframes impactBurst {
-                                0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5) rotate(0deg); }
-                                50% { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(180deg); }
-                                100% { opacity: 0; transform: translate(-50%, -50%) scale(2) rotate(360deg); }
-                            }
-                        `;
-                        document.head.appendChild(style);
-                    }
-
-                    setTimeout(() => impact.remove(), 500);
-
-                    // Apply strong tackle force
-                    Body.applyForce(kevin.head, kevin.head.position, { x: 0.8, y: -0.3 });
-                    Body.applyForce(kevin.torso, kevin.torso.position, { x: 0.7, y: -0.2 });
+                    // Particles & Shake
                     onHitKevin('bigdom', kevin.head.position);
-                    createImpactParticles(kevin.torso.position.x, kevin.torso.position.y, '#FFD700', 50, {
-                        shapes: ['star'],
-                        sizeMin: 5,
-                        sizeMax: 12,
-                        baseSpeed: 7,
-                        speedVariation: 10
-                    });
-                    createImpactParticles(kevin.torso.position.x, kevin.torso.position.y, '#FF3333', 30, {
-                        shapes: ['square', 'circle'],
-                        sizeMin: 4,
-                        sizeMax: 8,
-                        baseSpeed: 5,
-                        speedVariation: 6
-                    });
-                    triggerScreenShake(25);
-                    showQuote("SIDELINE VIOLATION!", kevin.head.position);
+                    createImpactParticles(kevin.head.position.x, kevin.head.position.y, '#CE2B37', 50);
+                    triggerScreenShake(40);
+                    showQuote("EY! SECURITY!", kevin.head.position);
 
-                    // Massive impact sound
-                    playTone(100, 0.25, 'sawtooth', 0.35);
-                    setTimeout(() => playTone(50, 0.3, 'sine', 0.3), 100);
+                    // Play heavy thud
+                    playTone(100, 0.1, 'square', 0.5);
 
-                    clearInterval(animateDom);
-                    setTimeout(() => domVisual.remove(), 500);
-                }
-
-                // Remove if off screen
-                if (domX > render.canvas.width + 150) {
-                    clearInterval(animateDom);
-                    domVisual.remove();
-                }
-            }, 16);
+                    // Remove fist after punch
+                    setTimeout(() => fist.remove(), 500);
+                    setTimeout(() => flash.remove(), 500);
+                }, 150);
+            }, 50);
         }
         
         function triggerAJPhone() {
