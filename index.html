@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, viewport-fit=cover">
     <title>FIRE KEVIN PATULLO</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,9 +29,9 @@
             font-family: 'Oswald', sans-serif;
             background: linear-gradient(135deg, var(--midnight-green) 0%, var(--eagles-black) 100%);
             min-height: 100vh;
-            overflow: hidden;
+            overflow: auto;
             user-select: none;
-            touch-action: none;
+            touch-action: pan-y; /* Allow vertical scrolling, prevent zoom */
             /* Safe area insets for iPhone notch/dynamic island */
             padding-top: env(safe-area-inset-top);
             padding-right: env(safe-area-inset-right);
@@ -583,16 +583,6 @@
     </style>
 </head>
 <body>
-    <!-- EMERGENCY ZOOM FIX BUTTON -->
-    <div id="zoom-fix-btn" onclick="forceResetZoom()"
-         style="display: none; position: fixed; bottom: 10px; right: 10px;
-                background: rgba(0, 0, 0, 0.3); color: rgba(255, 255, 255, 0.5);
-                border: 1px solid rgba(255, 255, 255, 0.2); padding: 4px 8px;
-                border-radius: 4px; font-family: 'Oswald', sans-serif; font-size: 10px;
-                z-index: 99999; cursor: pointer; white-space: nowrap; opacity: 0.6;">
-        Reset
-    </div>
-
     <!-- LOADING SCREEN -->
     <div id="loading-screen">
         <div class="loading-title">🦅 LOADING PLAYBOOK... 🦅</div>
@@ -4387,14 +4377,31 @@
             }
         });
         
-        // ==================== ZOOM PREVENTION SYSTEM ====================
+        // ==================== ZOOM PREVENTION (ALLOW ZOOM OUT ONLY) ====================
 
-        // 1. Block "Pinch to Zoom" (iOS Specific - The Killer Fix)
+        // 1. Block zoom IN, allow zoom OUT
+        let initialScale = 1;
+
         document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
+            initialScale = window.visualViewport ? window.visualViewport.scale : 1;
         });
 
-        // 2. Block Double-Tap Zoom (Aggressive)
+        document.addEventListener('gesturechange', function(e) {
+            // Only prevent if trying to zoom IN (scale > current scale)
+            if (e.scale > 1.0) {
+                e.preventDefault();
+            }
+            // If e.scale < 1.0, allow it (zooming out)
+        }, { passive: false });
+
+        document.addEventListener('gestureend', function(e) {
+            // Only prevent if ended zoomed in
+            if (e.scale > 1.0) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // 2. Block Double-Tap Zoom
         let lastTouchEnd = 0;
         document.addEventListener('touchend', function(e) {
             const now = Date.now();
@@ -4402,39 +4409,7 @@
                 e.preventDefault();
             }
             lastTouchEnd = now;
-        }, { passive: false }); // Important: passive: false allows preventDefault
-
-        // 3. Monitor Zoom Level & Show Emergency Button
-        if (window.visualViewport) {
-            const zoomBtn = document.getElementById('zoom-fix-btn');
-
-            function checkZoom() {
-                // If zoomed in more than 10% OR scrolled away from origin
-                if (window.visualViewport.scale > 1.1 || window.visualViewport.offsetLeft > 10) {
-                    zoomBtn.style.display = 'block';
-                } else {
-                    zoomBtn.style.display = 'none';
-                }
-            }
-
-            window.visualViewport.addEventListener('resize', checkZoom);
-            window.visualViewport.addEventListener('scroll', checkZoom);
-        }
-
-        // 4. Force Reset Function (The Escape Hatch)
-        function forceResetZoom() {
-            const viewport = document.querySelector('meta[name="viewport"]');
-            const originalContent = viewport.getAttribute('content');
-
-            // Force browser to recalculate layout
-            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-
-            // Scroll back to top-left
-            window.scrollTo(0, 0);
-
-            // Hide button
-            document.getElementById('zoom-fix-btn').style.display = 'none';
-        }
+        }, { passive: false });
 
         // ==================== START ====================
         document.addEventListener('DOMContentLoaded', runLoadingScreen);
