@@ -1,0 +1,4469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FIRE KEVIN PATULLO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --eagles-green: #004C54;
+            --eagles-silver: #A5ACAF;
+            --eagles-black: #000000;
+            --eagles-white: #FFFFFF;
+            --midnight-green: #003338;
+            --rage-red: #FF3333;
+        }
+        
+        body {
+            font-family: 'Oswald', sans-serif;
+            background: linear-gradient(135deg, var(--midnight-green) 0%, var(--eagles-black) 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            touch-action: none;
+            /* Safe area insets for iPhone notch/dynamic island */
+            padding-top: env(safe-area-inset-top);
+            padding-right: env(safe-area-inset-right);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+        }
+        
+        /* LOADING SCREEN */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--eagles-green) 0%, var(--eagles-black) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        #loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2rem, 8vw, 5rem);
+            color: var(--eagles-white);
+            text-shadow: 3px 3px 0 var(--rage-red);
+            margin-bottom: 2rem;
+            text-align: center;
+            animation: pulse 0.5s ease infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.02); }
+        }
+        
+        .progress-container {
+            width: 80%;
+            max-width: 400px;
+            height: 30px;
+            background: var(--eagles-black);
+            border: 3px solid var(--eagles-silver);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--eagles-silver), var(--eagles-white));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .loading-text {
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(0.5rem, 2vw, 0.75rem);
+            color: var(--eagles-silver);
+            text-align: center;
+            min-height: 2em;
+        }
+        
+        /* MAIN GAME */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* UI OVERLAY */
+        .ui-overlay {
+            position: absolute;
+            pointer-events: none;
+        }
+        
+        /* JOB SECURITY METER */
+        #job-security-container {
+            position: absolute;
+            top: max(10px, env(safe-area-inset-top));
+            left: max(10px, env(safe-area-inset-left));
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--eagles-silver);
+            border-radius: 10px;
+            padding: 10px 15px;
+            z-index: 100;
+        }
+        
+        #job-security-label {
+            font-family: 'Bebas Neue', sans-serif;
+            color: var(--eagles-white);
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            margin-bottom: 5px;
+        }
+        
+        #job-security-bar-container {
+            width: 150px;
+            height: 20px;
+            background: var(--eagles-black);
+            border: 2px solid var(--eagles-silver);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        #job-security-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--rage-red), #FF6B6B);
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        #job-security-percent {
+            font-family: 'Press Start 2P', monospace;
+            color: var(--eagles-white);
+            font-size: 0.6rem;
+            text-align: center;
+            margin-top: 5px;
+        }
+        
+        /* FAN PATIENCE / SCORE */
+        #score-container {
+            position: absolute;
+            top: max(10px, env(safe-area-inset-top));
+            right: max(10px, env(safe-area-inset-right));
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--eagles-silver);
+            border-radius: 10px;
+            padding: 10px 15px;
+            z-index: 100;
+            text-align: right;
+        }
+        
+        #score-label {
+            font-family: 'Bebas Neue', sans-serif;
+            color: var(--eagles-white);
+            font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+        }
+        
+        #score-value {
+            font-family: 'Press Start 2P', monospace;
+            color: var(--rage-red);
+            font-size: clamp(1rem, 3vw, 1.5rem);
+        }
+        
+        #four-verticals {
+            font-family: 'Press Start 2P', monospace;
+            color: var(--eagles-silver);
+            font-size: 0.5rem;
+            margin-top: 5px;
+        }
+        
+        /* ARSENAL */
+        #arsenal-container {
+            position: absolute;
+            bottom: max(60px, calc(40px + env(safe-area-inset-bottom)));
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+            pointer-events: auto;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 95%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            border: 2px solid var(--eagles-silver);
+        }
+        
+        .weapon-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            border: 2px solid var(--eagles-silver);
+            background: var(--eagles-green);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .weapon-btn:hover {
+            transform: scale(1.1);
+            border-color: var(--eagles-white);
+        }
+        
+        .weapon-btn.active {
+            background: var(--rage-red);
+            border-color: var(--eagles-white);
+            box-shadow: 0 0 15px var(--rage-red);
+            animation: activePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes activePulse {
+            0%, 100% { box-shadow: 0 0 15px var(--rage-red); transform: scale(1); }
+            50% { box-shadow: 0 0 25px var(--rage-red), 0 0 35px rgba(255, 51, 51, 0.5); transform: scale(1.05); }
+        }
+
+        .weapon-btn.locked {
+            opacity: 0.5;
+            filter: grayscale(1);
+            cursor: not-allowed;
+        }
+
+        .weapon-btn.unlocking {
+            animation: unlockCelebration 1s ease-out forwards;
+        }
+
+        @keyframes unlockCelebration {
+            0% { transform: scale(1) rotate(0deg); filter: grayscale(1); opacity: 0.5; }
+            25% { transform: scale(1.3) rotate(10deg); filter: grayscale(0.5); opacity: 0.8; }
+            50% { transform: scale(1.1) rotate(-10deg); filter: grayscale(0); opacity: 1; }
+            75% { transform: scale(1.2) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); filter: grayscale(0); opacity: 1; }
+        }
+        
+        .weapon-btn .icon {
+            font-size: 1.5rem;
+        }
+        
+        .weapon-btn .unlock-cost {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: var(--rage-red);
+            color: white;
+            font-size: 0.5rem;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Press Start 2P', monospace;
+        }
+        
+        /* QUOTE BUBBLE */
+        #quote-bubble {
+            position: absolute;
+            background: white;
+            color: black;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-family: 'Oswald', sans-serif;
+            font-size: clamp(0.8rem, 2vw, 1.1rem);
+            max-width: 250px;
+            text-align: center;
+            z-index: 200;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        #quote-bubble.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        #quote-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white;
+        }
+        
+        /* NEWS TICKER */
+        #ticker-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: var(--eagles-black);
+            border-top: 3px solid var(--rage-red);
+            overflow: hidden;
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        #ticker-content {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            animation: ticker 60s linear infinite;
+            white-space: nowrap;
+        }
+        
+        @keyframes ticker {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+        
+        .ticker-item {
+            font-family: 'Oswald', sans-serif;
+            color: var(--eagles-white);
+            font-size: 0.9rem;
+            padding: 0 30px;
+        }
+        
+        .ticker-breaking {
+            color: var(--rage-red);
+            font-weight: bold;
+        }
+
+        /* GAME OVER OVERLAY */
+        #game-over-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+            animation: gameOverFlash 0.5s ease;
+        }
+        
+        @keyframes gameOverFlash {
+            0%, 50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        
+        #game-over-overlay.show {
+            display: flex;
+        }
+        
+        .game-over-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2rem, 8vw, 4rem);
+            color: white;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .game-over-score {
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(0.8rem, 2vw, 1.2rem);
+            color: white;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-over-btn {
+            margin-top: 2rem;
+            background: white;
+            color: var(--rage-red);
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .game-over-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        /* LURIE OVERLAY */
+        #lurie-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 400;
+            filter: grayscale(1);
+        }
+        
+        #lurie-overlay.show {
+            display: flex;
+        }
+        
+        .lurie-text {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(1.5rem, 5vw, 3rem);
+            color: white;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .lurie-subtext {
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(0.5rem, 1.5vw, 0.8rem);
+            color: #888;
+            text-align: center;
+        }
+        
+        /* EGG SPLAT EFFECT */
+        .egg-splat {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(ellipse at center, #FFD700 30%, #FFA500 60%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: splatDrip 5s ease-out forwards;
+            z-index: 150;
+        }
+        
+        @keyframes splatDrip {
+            0% { opacity: 1; transform: scale(1); }
+            80% { opacity: 1; transform: scale(1) translateY(20px); }
+            100% { opacity: 0; transform: scale(0.5) translateY(50px); }
+        }
+        
+        /* SEPIA FILTER TOGGLE */
+        #sepia-toggle {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--eagles-silver);
+            border-radius: 20px;
+            padding: 5px 15px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+        
+        #sepia-toggle:hover {
+            border-color: var(--eagles-white);
+        }
+        
+        #sepia-toggle span {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.5rem;
+            color: var(--eagles-silver);
+        }
+        
+        .sepia-active #game-canvas {
+            filter: sepia(0.8) brightness(1.1);
+        }
+        
+        /* HIGHWAY SIGN */
+        .highway-sign {
+            position: absolute;
+            top: 50px;
+            right: 20%;
+            background: #006B3C;
+            border: 3px solid white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            z-index: 50;
+            transform: perspective(200px) rotateY(-5deg);
+        }
+        
+        .highway-sign-text {
+            font-family: 'Oswald', sans-serif;
+            color: white;
+            font-size: 0.7rem;
+            text-align: center;
+            line-height: 1.3;
+        }
+        
+        /* MOBILE ADJUSTMENTS */
+        @media (max-width: 600px) {
+            #mobile-credits-btn {
+                display: block !important;
+            }
+
+            #mobile-credits-btn:hover {
+                transform: scale(1.1);
+                background: rgba(0,0,0,0.95);
+            }
+
+            #arsenal-container {
+                bottom: max(50px, calc(40px + env(safe-area-inset-bottom)));
+                gap: 5px;
+            }
+            
+            .weapon-btn {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .weapon-btn .icon {
+                font-size: 1.2rem;
+            }
+            
+            #job-security-bar-container {
+                width: 100px;
+            }
+            
+            .highway-sign {
+                display: none;
+            }
+        }
+
+        /* CREDITS POPUP HOVER EFFECTS */
+        #credits-popup a {
+            transition: all 0.3s ease !important;
+        }
+
+        #credits-popup a:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6) !important;
+            filter: brightness(1.1) !important;
+        }
+
+        #credits-popup button:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 6px 20px rgba(255,215,0,0.4) !important;
+            filter: brightness(1.1) !important;
+        }
+
+        #credits-popup button:active {
+            transform: scale(0.98) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen">
+        <div class="loading-title">🦅 LOADING PLAYBOOK... 🦅</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="loading-text" id="loading-text">Installing screen passes...</div>
+    </div>
+
+    <!-- MAIN GAME -->
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- MOBILE CREDITS BUTTON -->
+        <div id="mobile-credits-btn" onclick="showCreditsPopup()"
+             style="position: absolute; top: max(10px, env(safe-area-inset-top)); right: max(60px, calc(60px + env(safe-area-inset-right)));
+                    font-size: 28px; z-index: 100; cursor: pointer; display: none;
+                    background: rgba(0,0,0,0.8); padding: 8px 12px; border-radius: 50%;
+                    border: 2px solid var(--eagles-silver); transition: all 0.3s ease;"
+             title="Credits & Support">
+            ℹ️
+        </div>
+
+        <!-- HIGHWAY SIGN (CLICKABLE) -->
+        <div class="highway-sign" onclick="showCreditsPopup()" style="cursor: pointer;" title="Click for credits & support">
+            <div class="highway-sign-text">🚗 FIRE KEVIN PATULLO<br>NEXT EXIT →</div>
+        </div>
+        
+        <!-- JOB SECURITY -->
+        <div id="job-security-container">
+            <div id="job-security-label">JOB SECURITY</div>
+            <div id="job-security-bar-container">
+                <div id="job-security-bar"></div>
+            </div>
+            <div id="job-security-percent">100%</div>
+        </div>
+        
+        <!-- SCORE -->
+        <div id="score-container">
+            <div id="score-label">FAN PATIENCE</div>
+            <div id="score-value">0</div>
+            <div id="four-verticals">4 Verticals: 847</div>
+        </div>
+        
+        <!-- LIFE BEFORE KEVIN TOGGLE -->
+        <div id="sepia-toggle" onclick="toggleSepia()">
+            <span>📺 LIFE BEFORE KEVIN</span>
+        </div>
+
+        <!-- QUOTE BUBBLE -->
+        <div id="quote-bubble"></div>
+        
+        <!-- ARSENAL -->
+        <div id="arsenal-container">
+            <button class="weapon-btn active" data-weapon="egg" title="Egg">
+                <span class="icon">🥚</span>
+            </button>
+            <button class="weapon-btn" data-weapon="snowball" title="Snowball">
+                <span class="icon">❄️</span>
+            </button>
+            <button class="weapon-btn" data-weapon="boo" title="Boo Bird">
+                <span class="icon">👻</span>
+            </button>
+            <button class="weapon-btn" data-weapon="battery" title="Battery">
+                <span class="icon">🔋</span>
+            </button>
+            <button class="weapon-btn" data-weapon="screen" title="Screen Pass">
+                <span class="icon">📺</span>
+            </button>
+            <button class="weapon-btn locked" data-weapon="tushpush" data-unlock="100" title="Tush Push (100 pts)">
+                <span class="icon">🏈</span>
+                <span class="unlock-cost">100</span>
+            </button>
+            <button class="weapon-btn locked" data-weapon="dealer" data-unlock="150" title="Dealer's Choice (150 pts)">
+                <span class="icon">🃏</span>
+                <span class="unlock-cost">150</span>
+            </button>
+            <button class="weapon-btn locked" data-weapon="radio" data-unlock="250" title="Radio Caller (250 pts)">
+                <span class="icon">📻</span>
+                <span class="unlock-cost">250</span>
+            </button>
+            <button class="weapon-btn locked" data-weapon="bigdom" data-unlock="500" title="Big Dom (500 pts)">
+                <span class="icon">💪</span>
+                <span class="unlock-cost">500</span>
+            </button>
+            <button class="weapon-btn locked" data-weapon="ajphone" data-unlock="750" title="AJ's Livestream (750 pts)">
+                <span class="icon">📱</span>
+                <span class="unlock-cost">750</span>
+            </button>
+            <button class="weapon-btn locked" data-weapon="grease" data-unlock="1000" title="Pole Grease (1000 pts)">
+                <span class="icon">🧴</span>
+                <span class="unlock-cost">1000</span>
+            </button>
+        </div>
+        
+        <!-- NEWS TICKER -->
+        <div id="ticker-container">
+            <div id="ticker-content"></div>
+        </div>
+    </div>
+    
+    <!-- LURIE OVERLAY -->
+    <div id="lurie-overlay">
+        <div class="lurie-text">"Kevin has my full confidence"</div>
+        <div class="lurie-subtext">- Jeffrey Lurie, probably</div>
+    </div>
+    
+    <!-- GAME OVER OVERLAY -->
+    <div id="game-over-overlay">
+        <div class="game-over-title">FINAL: 49ers 23, Eagles 19</div>
+        <div class="game-over-score">Kevin has been fired. The season is over.</div>
+        <div class="game-over-score">Total Offense Rank: 21st | Rushing Rank: 20th</div>
+
+        <div style="margin: 30px 0; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 10px;">
+            <div style="font-family: 'Oswald', sans-serif; font-size: 1.2rem; color: white; margin-bottom: 15px;">
+                But you can still make a difference.
+            </div>
+            <a href="https://donate.eaglesautismfoundation.org/donations/new?event=772a444ceb60b5044aad"
+               target="_blank"
+               style="display: inline-block; background: #00C6A7; color: white; padding: 15px 30px;
+                      border-radius: 8px; text-decoration: none; font-family: 'Bebas Neue', sans-serif;
+                      font-size: 1.5rem; transition: all 0.3s ease; border: none;">
+                🧩 DONATE TO EAGLES AUTISM FOUNDATION
+            </a>
+        </div>
+
+        <button class="game-over-btn" onclick="restartGame()">🔄 RUN IT BACK?</button>
+
+        <div style="margin-top: 20px; font-family: 'Press Start 2P', monospace; font-size: 0.6rem; color: #888;">
+            In Loving Memory of Robert Macintire
+        </div>
+    </div>
+
+    <!-- CREDITS POPUP -->
+    <div id="credits-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                                     background: rgba(0,0,0,0.9); z-index: 1000;
+                                     justify-content: center; align-items: center;">
+        <div style="background: linear-gradient(135deg, #004C54 0%, #000814 50%, #000 100%);
+                    padding: 50px 40px; border-radius: 20px; max-width: 550px; width: 90%;
+                    border: 4px solid #FFD700; box-shadow: 0 10px 50px rgba(0,0,0,0.8), 0 0 30px rgba(0,76,84,0.5);
+                    position: relative; overflow: hidden;">
+
+            <!-- Decorative Eagles wings -->
+            <div style="position: absolute; top: 10px; left: 10px; font-size: 3rem; opacity: 0.15;">🦅</div>
+            <div style="position: absolute; top: 10px; right: 10px; font-size: 3rem; opacity: 0.15; transform: scaleX(-1);">🦅</div>
+            <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 2rem; opacity: 0.1;">🏈</div>
+
+            <div style="font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: #FFD700;
+                        text-align: center; margin-bottom: 15px; text-shadow: 3px 3px 0 #000, 0 0 20px rgba(255,215,0,0.6);
+                        letter-spacing: 3px;">
+                🦅 THANK YOU 🦅
+            </div>
+
+            <div style="font-family: 'Oswald', sans-serif; font-size: 1rem; color: #A5ACAF;
+                        text-align: center; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;">
+                ━━━ Fly Eagles Fly ━━━
+            </div>
+
+            <div style="font-family: 'Oswald', sans-serif; font-size: 1.1rem; color: #fff;
+                        text-align: center; margin-bottom: 30px; line-height: 1.7;
+                        background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;
+                        border-left: 3px solid #FFD700;">
+                In loving memory of <strong style="color: #FFD700;">Robert Macintire</strong>,<br>
+                whose passion for the Eagles inspired this game.<br>
+                <span style="font-size: 0.9rem; color: #A5ACAF; font-style: italic;">A true Philly fan forever.</span>
+            </div>
+
+            <!-- Eagles Autism Foundation -->
+            <div style="background: linear-gradient(135deg, rgba(0,198,167,0.2) 0%, rgba(0,198,167,0.05) 100%);
+                        padding: 25px 20px; border-radius: 12px; margin-bottom: 20px;
+                        border: 2px solid #00C6A7; box-shadow: 0 0 15px rgba(0,198,167,0.3);">
+                <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: #00C6A7;
+                            text-align: center; margin-bottom: 12px; text-shadow: 1px 1px 2px #000;
+                            letter-spacing: 1px;">
+                    🧩 Support Eagles Autism Foundation
+                </div>
+                <div style="font-family: 'Oswald', sans-serif; font-size: 0.85rem; color: #A5ACAF;
+                            text-align: center; margin-bottom: 12px; line-height: 1.4;">
+                    Making a real difference in the community
+                </div>
+                <a href="https://donate.eaglesautismfoundation.org/donations/new?event=772a444ceb60b5044aad"
+                   target="_blank"
+                   style="display: block; background: linear-gradient(135deg, #00C6A7 0%, #008C7A 100%);
+                          color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none;
+                          font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; text-align: center;
+                          transition: all 0.3s ease; border: 2px solid #00C6A7;
+                          box-shadow: 0 4px 15px rgba(0,198,167,0.4); letter-spacing: 1px;">
+                    🧩 DONATE NOW
+                </a>
+            </div>
+
+            <!-- Buy Dev a Beer -->
+            <div style="background: linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(255,215,0,0.05) 100%);
+                        padding: 25px 20px; border-radius: 12px; margin-bottom: 25px;
+                        border: 2px solid #FFB612; box-shadow: 0 0 15px rgba(255,182,18,0.3);">
+                <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: #FFD700;
+                            text-align: center; margin-bottom: 12px; text-shadow: 1px 1px 2px #000;
+                            letter-spacing: 1px;">
+                    🍺 Buy the Dev a Beer
+                </div>
+                <div style="font-family: 'Oswald', sans-serif; font-size: 0.85rem; color: #A5ACAF;
+                            text-align: center; margin-bottom: 12px; line-height: 1.4;">
+                    Support more Philly sports satire
+                </div>
+                <a href="https://venmo.com/Sanger"
+                   target="_blank"
+                   style="display: block; background: linear-gradient(135deg, #008CFF 0%, #0066CC 100%);
+                          color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none;
+                          font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; text-align: center;
+                          transition: all 0.3s ease; border: 2px solid #008CFF;
+                          box-shadow: 0 4px 15px rgba(0,140,255,0.4); letter-spacing: 1px;">
+                    🍺 VENMO @SANGER
+                </a>
+            </div>
+
+            <button onclick="closeCreditsPopup()"
+                    style="width: 100%; background: linear-gradient(135deg, #004C54 0%, #003340 100%);
+                           color: #FFD700; border: 3px solid #FFD700; padding: 15px;
+                           border-radius: 10px; font-family: 'Bebas Neue', sans-serif;
+                           font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease;
+                           box-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: 2px;
+                           text-shadow: 1px 1px 2px #000;">
+                ⬅️ BACK TO THE RAGE
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== GAME CONFIGURATION ====================
+        const CONFIG = {
+            THROW_MULTIPLIER: 15,
+            GRAVITY: 1,
+            BOUNCE: 0.6,
+            FRICTION: 0.1,
+            JOB_SECURITY_DECAY: 2,
+            JOB_SECURITY_REGEN: 0.05,
+            SCORE_PER_HIT: 10
+        };
+        
+        // ==================== ASSETS ====================
+        const ASSETS = {
+            heads: {
+                surprised: 'assets/IMG_0500.png',
+                angry: 'assets/IMG_0861.png',
+                worried: 'assets/IMG_1214.png',
+                distressed: 'assets/IMG_4829.png',
+                crying: 'assets/IMG_4992.png',
+                knockout: 'assets/IMG_6466.png'
+            },
+            torso: 'assets/IMG_9959.png',
+            wipLogo: 'assets/WIP-FM_logo.png',
+            lightPole: 'assets/lightpole.webp'
+        };
+        
+        // ==================== QUOTES ====================
+        const QUOTES = {
+            // Low pain / Confusion quotes (80-100% job security)
+            confusion: [
+                "It's never just one specific thing.",
+                "We're constantly pressing on it.",
+                "The communication is constant.",
+                "We're looking for answers.",
+                "Some games it leans pass, some games run.",
+                "It just presented itself."
+            ],
+            // Medium pain / Defensive quotes (40-80% job security)
+            defensive: [
+                "We know we've just got to maintain it.",
+                "We'll adjust at halftime!",
+                "That's on me, I'll be better",
+                "Execution, not the play call",
+                "We're looking at the tape",
+                "Trust the process.",
+                "I'm a reflection of Nick."
+            ],
+            // High pain / Reality quotes (0-40% job security)
+            reality: [
+                "This is getting out of hand...",
+                "The fans have spoken.",
+                "Maybe it's time...",
+                "I hear the boos."
+            ],
+            // Special egg quote (MUST play when hit by egg)
+            eggHouse: "We've had a great experience here in Philadelphia.",
+            onIdle: [
+                "Some games it leans pass, some games run.",
+                "It just presented itself.",
+                "We're looking for answers.",
+                "Should we run a draw here?",
+                "Bubble screen is working"
+            ],
+            onUnlock: [
+                "Four Verticals is still on the table",
+                "We just need to execute",
+                "I like our game plan"
+            ]
+        };
+        
+        // ==================== TICKER HEADLINES ====================
+        const TICKER_HEADLINES = [
+            "🔴 BREAKING: Lane Johnson calls offense 'predictable' again...",
+            "📉 REPORT: Saquon Barkley still in a 'funk', searching for rushing yards...",
+            "📱 UPDATE: A.J. Brown ends live stream after rant...",
+            "📈 TIKTOK TREND: 'Life Before Kevin' videos up 400%...",
+            "🎙️ SOURCES: Sirianni says he has 'right people' despite Wild Card exit...",
+            "🏈 Eagles offense: Zero points in second halves this season",
+            "💀 Fan patience at all-time low after 49ers loss",
+            "🔥 'Three-way monster' offense more like three-way disaster",
+            "📊 Screen pass attempts: 847 | Touchdowns: 3",
+            "🎯 firepatullo.com traffic up 10,000% this week",
+            "🦅 POLL: 94% of fans want offensive coordinator fired",
+            "📻 94WIP callers flooding lines demanding change",
+            "⚡ FLASHBACK: Remember when we had an offensive identity?",
+            "🎪 ANALYSIS: Is Kevin Patullo the most hated man in Philadelphia?",
+            "🏟️ REPORT: Lincoln Financial Field installing more boo speakers",
+            "📉 STAT: Eagles rank 21st in total offense, 20th in rushing",
+            "🤔 QUESTION: Does Kevin know what a 'deep ball' is?",
+            "📺 BREAKING: NFL investigating Eagles for screen pass abuse",
+            "🦅 UPDATE: Kelce considering un-retiring just to yell at Kevin",
+            "💬 QUOTE: 'We've had a great experience here in Philadelphia' - Kevin Patullo"
+        ];
+        
+        // ==================== GAME STATE ====================
+        let gameState = {
+            score: 0,
+            jobSecurity: 100,
+            fourVerticals: 847,
+            selectedWeapon: 'egg',
+            isDragging: false,
+            dragTarget: null,
+            dragOffset: { x: 0, y: 0 },
+            velocityHistory: [],
+            lastHitTime: 0,
+            isSepia: false,
+            imagesLoaded: false,
+            screenShake: { x: 0, y: 0, intensity: 0 },
+            hitStreak: 0,
+            lastStreakTime: 0,
+            totalHits: 0,
+            secretClicks: 0,
+            lastSecretClick: 0,
+            rageMode: false,
+            idleTime: 0,
+            lastActivityTime: Date.now(),
+            missedClicks: 0,
+            lurieUsed: false,  // Track if Lurie has saved Kevin already
+            snowballCount: 0,  // Track rapid snowball throws
+            lastSnowballTime: 0,
+            eggHits: 0  // Track egg hits for Positivity Rabbit
+        };
+        
+        // ==================== MATTER.JS SETUP ====================
+        const { Engine, Render, World, Bodies, Body, Mouse, Events, Composite, Constraint } = Matter;
+
+        let engine, render, world;
+        let kevin = { head: null, torso: null };
+        let projectiles = [];
+        let loadedImages = {};
+        let mouseConstraint = null;
+        let particles = [];
+        
+        // ==================== LOADING SCREEN ====================
+        const loadingTexts = [
+            "Installing screen passes...",
+            "Drawing up QB draws...",
+            "Reviewing film from 2018...",
+            "Preparing 3rd down plays...",
+            "Calibrating bubble screens...",
+            "Loading excuses database...",
+            "Importing halftime adjustments...",
+            "Compiling press conference responses..."
+        ];
+        
+        let loadingProgress = 0;
+        let loadingTextIndex = 0;
+        
+        async function runLoadingScreen() {
+            const progressBar = document.getElementById('progress-bar');
+            const loadingText = document.getElementById('loading-text');
+            
+            // Preload images during loading
+            preloadImages();
+            
+            // Animate progress with the "jump back" joke
+            const stages = [
+                { target: 23, duration: 500 },
+                { target: 45, duration: 400 },
+                { target: 67, duration: 300 },
+                { target: 87, duration: 400 },
+                { target: 23, duration: 100 }, // Jump back!
+                { target: 45, duration: 300 },
+                { target: 78, duration: 400 },
+                { target: 95, duration: 500 },
+                { target: 100, duration: 300 }
+            ];
+            
+            for (let stage of stages) {
+                await animateProgress(progressBar, stage.target, stage.duration);
+                loadingTextIndex = (loadingTextIndex + 1) % loadingTexts.length;
+                loadingText.textContent = loadingTexts[loadingTextIndex];
+                await sleep(200);
+            }
+            
+            // Wait for images to load
+            while (!gameState.imagesLoaded) {
+                await sleep(100);
+            }
+            
+            // Hide loading screen
+            document.getElementById('loading-screen').classList.add('hidden');
+            
+            // Start game
+            setTimeout(initGame, 500);
+        }
+        
+        function animateProgress(bar, target, duration) {
+            return new Promise(resolve => {
+                const start = parseFloat(bar.style.width) || 0;
+                const startTime = performance.now();
+                
+                function update(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const current = start + (target - start) * progress;
+                    bar.style.width = current + '%';
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    } else {
+                        resolve();
+                    }
+                }
+                requestAnimationFrame(update);
+            });
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // ==================== IMAGE PRELOADING ====================
+        function preloadImages() {
+            const imagesToLoad = [
+                ...Object.values(ASSETS.heads),
+                ASSETS.torso,
+                ASSETS.wipLogo,
+                ASSETS.lightPole
+            ];
+            
+            let loaded = 0;
+            
+            imagesToLoad.forEach(src => {
+                const img = new Image();
+                img.onload = () => {
+                    loadedImages[src] = img;
+                    loaded++;
+                    if (loaded === imagesToLoad.length) {
+                        gameState.imagesLoaded = true;
+                    }
+                };
+                img.onerror = () => {
+                    console.warn('Failed to load:', src);
+                    loaded++;
+                    if (loaded === imagesToLoad.length) {
+                        gameState.imagesLoaded = true;
+                    }
+                };
+                img.src = src;
+            });
+        }
+        
+        // ==================== GAME INITIALIZATION ====================
+        function initGame() {
+            const canvas = document.getElementById('game-canvas');
+            const container = document.getElementById('game-container');
+            
+            // Create engine
+            engine = Engine.create();
+            world = engine.world;
+            engine.gravity.y = CONFIG.GRAVITY;
+            
+            // Create renderer
+            render = Render.create({
+                canvas: canvas,
+                engine: engine,
+                options: {
+                    width: container.clientWidth,
+                    height: container.clientHeight,
+                    wireframes: false,
+                    background: 'transparent'
+                }
+            });
+            
+            // Create walls
+            createWalls();
+            
+            // Create Kevin ragdoll
+            createKevin();
+            
+            // Setup input handlers
+            setupInputHandlers();
+            
+            // Setup weapon selection
+            setupWeaponButtons();
+            
+            // Setup ticker
+            setupTicker();
+            
+            // Start game loops
+            Engine.run(engine);
+            Render.run(render);
+            
+            // Custom render loop for sprites
+            requestAnimationFrame(gameLoop);
+            
+            // Idle quote timer
+            setInterval(idleQuote, 8000);
+            
+            // Four verticals counter
+            setInterval(() => {
+                gameState.fourVerticals += Math.floor(Math.random() * 3);
+                document.getElementById('four-verticals').textContent = 
+                    `4 Verticals: ${gameState.fourVerticals}`;
+                    
+                if (gameState.fourVerticals >= 1000 && !gameState.verticalExplosion) {
+                    gameState.verticalExplosion = true;
+                    triggerVerticalExplosion();
+                }
+            }, 2000);
+            
+            // Job security regen
+            setInterval(() => {
+                if (gameState.jobSecurity < 100) {
+                    gameState.jobSecurity = Math.min(100, gameState.jobSecurity + CONFIG.JOB_SECURITY_REGEN);
+                    updateJobSecurityDisplay();
+                }
+            }, 100);
+        }
+        
+        function createWalls() {
+            const w = render.canvas.width;
+            const h = render.canvas.height;
+            const wallThickness = 50;
+            const bottomUIHeight = 120; // Space for arsenal + ticker
+
+            const walls = [
+                // Floor (above the UI controls - keeps Patullo visible)
+                Bodies.rectangle(w/2, h - bottomUIHeight, w, wallThickness, {
+                    isStatic: true,
+                    render: { visible: false },
+                    restitution: CONFIG.BOUNCE
+                }),
+                // Left wall (at left edge of visible canvas)
+                Bodies.rectangle(wallThickness/2, h/2, wallThickness, h, {
+                    isStatic: true,
+                    render: { visible: false },
+                    restitution: CONFIG.BOUNCE
+                }),
+                // Right wall (at right edge of visible canvas)
+                Bodies.rectangle(w - wallThickness/2, h/2, wallThickness, h, {
+                    isStatic: true,
+                    render: { visible: false },
+                    restitution: CONFIG.BOUNCE
+                }),
+                // Ceiling (lenient - allows temporary off-screen at top)
+                Bodies.rectangle(w/2, -wallThickness, w, wallThickness, {
+                    isStatic: true,
+                    render: { visible: false },
+                    restitution: CONFIG.BOUNCE
+                })
+            ];
+
+            // Arsenal Container - add physics body for the UI element
+            const arsenalDiv = document.getElementById('arsenal-container');
+            if (arsenalDiv) {
+                const arsenalRect = arsenalDiv.getBoundingClientRect();
+                const canvasRect = render.canvas.getBoundingClientRect();
+
+                // Convert DOM coordinates to canvas coordinates
+                const arsenalX = (arsenalRect.left + arsenalRect.width / 2 - canvasRect.left) * (w / canvasRect.width);
+                const arsenalY = (arsenalRect.top + arsenalRect.height / 2 - canvasRect.top) * (h / canvasRect.height);
+                const arsenalWidth = arsenalRect.width * (w / canvasRect.width);
+                const arsenalHeight = arsenalRect.height * (h / canvasRect.height);
+
+                const arsenalBody = Bodies.rectangle(arsenalX, arsenalY, arsenalWidth, arsenalHeight, {
+                    isStatic: true,
+                    render: { visible: false },
+                    restitution: CONFIG.BOUNCE,
+                    label: 'arsenal-container'
+                });
+
+                walls.push(arsenalBody);
+            }
+
+            World.add(world, walls);
+        }
+        
+        function createKevin() {
+            const w = render.canvas.width;
+            const h = render.canvas.height;
+            const centerX = w / 2;
+            const centerY = h / 2 - 50;
+
+            // Head (60x70 based on image proportions)
+            kevin.head = Bodies.circle(centerX, centerY - 50, 35, {
+                restitution: CONFIG.BOUNCE,
+                friction: CONFIG.FRICTION,
+                frictionAir: 0.02, // Air resistance to slow down movement
+                density: 0.001, // Lighter head
+                label: 'kevinHead',
+                render: { visible: false }
+            });
+
+            // Torso (80x60 based on image proportions) - heavier base
+            kevin.torso = Bodies.rectangle(centerX, centerY + 30, 70, 50, {
+                restitution: CONFIG.BOUNCE,
+                friction: CONFIG.FRICTION,
+                frictionAir: 0.02, // Air resistance
+                density: 0.003, // Heavier torso acts as anchor
+                label: 'kevinTorso',
+                render: { visible: false }
+            });
+
+            // Add angular damping to prevent excessive spinning
+            Body.setAngularVelocity(kevin.head, 0);
+            Body.setAngularVelocity(kevin.torso, 0);
+            kevin.head.frictionAir = 0.05; // More air resistance on rotation
+            kevin.torso.frictionAir = 0.05;
+
+            // Connect head to torso with constraint (flexible for ragdoll effect)
+            const neck = Constraint.create({
+                bodyA: kevin.head,
+                bodyB: kevin.torso,
+                pointA: { x: 0, y: 30 },
+                pointB: { x: 0, y: -25 },
+                stiffness: 0.6,  // More flexible for ragdoll physics
+                damping: 0.1,
+                length: 10,
+                render: { visible: false }
+            });
+
+            World.add(world, [kevin.head, kevin.torso, neck]);
+
+            // Track current expression
+            kevin.currentExpression = 'surprised';
+        }
+        
+        // ==================== CUSTOM RENDERING ====================
+        function gameLoop() {
+            // Apply screen shake
+            updateScreenShake();
+
+            // Update particles
+            updateParticles();
+
+            // Check idle time for Jalen Philosopher Mode
+            checkIdleTime();
+
+            // Keep Kevin upright (self-righting)
+            applyUprightForce();
+
+            drawKevin();
+            drawProjectiles();
+            drawParticles();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function applyUprightForce() {
+            if (!kevin.torso || !kevin.head) return;
+
+            // Only apply when not being dragged
+            if (gameState.isDragging) return;
+
+            // Get torso angle (0 = upright)
+            const torsoAngle = kevin.torso.angle % (Math.PI * 2);
+            const headAngle = kevin.head.angle % (Math.PI * 2);
+
+            // Normalize angles to -PI to PI range
+            const normalizedTorsoAngle = ((torsoAngle + Math.PI) % (Math.PI * 2)) - Math.PI;
+            const normalizedHeadAngle = ((headAngle + Math.PI) % (Math.PI * 2)) - Math.PI;
+
+            // Apply gentle corrective torque to torso when tilted
+            if (Math.abs(normalizedTorsoAngle) > 0.1) {
+                const correctionStrength = 0.0003;
+                const torque = -normalizedTorsoAngle * correctionStrength;
+                Body.setAngularVelocity(kevin.torso, kevin.torso.angularVelocity + torque);
+            }
+
+            // Apply gentle corrective torque to head when tilted
+            if (Math.abs(normalizedHeadAngle) > 0.1) {
+                const correctionStrength = 0.0002;
+                const torque = -normalizedHeadAngle * correctionStrength;
+                Body.setAngularVelocity(kevin.head, kevin.head.angularVelocity + torque);
+            }
+
+            // Dampen angular velocity when close to upright
+            if (Math.abs(normalizedTorsoAngle) < 0.3) {
+                Body.setAngularVelocity(kevin.torso, kevin.torso.angularVelocity * 0.95);
+            }
+            if (Math.abs(normalizedHeadAngle) < 0.3) {
+                Body.setAngularVelocity(kevin.head, kevin.head.angularVelocity * 0.95);
+            }
+        }
+
+        function checkIdleTime() {
+            const now = Date.now();
+            const timeSinceActivity = now - gameState.lastActivityTime;
+
+            if (timeSinceActivity > 30000 && gameState.idleTime === 0) {
+                // Trigger Jalen Philosopher Mode
+                triggerJalenPhilosopher();
+                gameState.idleTime = 1; // Mark as triggered
+            }
+
+            // Reset if user becomes active again
+            if (timeSinceActivity < 1000) {
+                gameState.idleTime = 0;
+            }
+        }
+
+        function resetActivity() {
+            gameState.lastActivityTime = Date.now();
+            gameState.idleTime = 0;
+        }
+
+        function updateScreenShake() {
+            if (gameState.screenShake.intensity > 0) {
+                gameState.screenShake.x = (Math.random() - 0.5) * gameState.screenShake.intensity;
+                gameState.screenShake.y = (Math.random() - 0.5) * gameState.screenShake.intensity;
+                gameState.screenShake.intensity *= 0.9; // Decay
+
+                if (gameState.screenShake.intensity < 0.1) {
+                    gameState.screenShake.intensity = 0;
+                    gameState.screenShake.x = 0;
+                    gameState.screenShake.y = 0;
+                }
+
+                // Apply shake to canvas
+                render.canvas.style.transform = `translate(${gameState.screenShake.x}px, ${gameState.screenShake.y}px)`;
+            } else {
+                render.canvas.style.transform = 'translate(0, 0)';
+            }
+        }
+
+        function triggerScreenShake(intensity = 10) {
+            gameState.screenShake.intensity = intensity;
+        }
+
+        // ==================== PARTICLE SYSTEM ====================
+        function createImpactParticles(x, y, color = '#FFD700', count = 20, options = {}) {
+            const {
+                spreadAngle = Math.PI * 2,
+                baseSpeed = 3,
+                speedVariation = 5,
+                sizeMin = 3,
+                sizeMax = 8,
+                shapes = ['circle'], // circle, square, star
+                glow = true
+            } = options;
+
+            for (let i = 0; i < count; i++) {
+                const angle = (spreadAngle * i) / count + (Math.random() - 0.5) * 0.3;
+                const speed = baseSpeed + Math.random() * speedVariation;
+                const shape = shapes[Math.floor(Math.random() * shapes.length)];
+
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1.0,
+                    size: sizeMin + Math.random() * (sizeMax - sizeMin),
+                    color: color,
+                    shape: shape,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 0.3,
+                    glow: glow
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.3; // Gravity
+                p.vx *= 0.98; // Air resistance
+                p.life -= 0.02;
+                p.rotation += p.rotationSpeed;
+                p.size *= 0.99; // Shrink slightly
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles() {
+            const ctx = render.context;
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+
+                // Add glow effect
+                if (p.glow) {
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = 10 * p.life;
+                }
+
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation);
+
+                // Draw based on shape
+                switch(p.shape) {
+                    case 'circle':
+                        ctx.beginPath();
+                        ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                    case 'square':
+                        ctx.fillRect(-p.size, -p.size, p.size * 2, p.size * 2);
+                        break;
+                    case 'star':
+                        ctx.beginPath();
+                        for (let i = 0; i < 5; i++) {
+                            const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+                            const x = Math.cos(angle) * p.size;
+                            const y = Math.sin(angle) * p.size;
+                            if (i === 0) ctx.moveTo(x, y);
+                            else ctx.lineTo(x, y);
+                            // Inner point
+                            const innerAngle = angle + Math.PI / 5;
+                            const innerX = Math.cos(innerAngle) * (p.size / 2);
+                            const innerY = Math.sin(innerAngle) * (p.size / 2);
+                            ctx.lineTo(innerX, innerY);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                }
+
+                ctx.restore();
+            });
+        }
+
+        function drawKevin() {
+            const ctx = render.context;
+
+            // Ensure kevin exists and has valid bodies
+            if (!kevin.head || !kevin.torso) return;
+
+            // Draw torso
+            const torsoImg = loadedImages[ASSETS.torso];
+            if (torsoImg && kevin.torso.position) {
+                ctx.save();
+                ctx.translate(kevin.torso.position.x, kevin.torso.position.y);
+                ctx.rotate(kevin.torso.angle);
+                ctx.drawImage(torsoImg, -40, -30, 80, 60);
+                ctx.restore();
+            }
+
+            // Draw head with current expression (fallback to 'surprised' if expression missing)
+            const expression = kevin.currentExpression || 'surprised';
+            const headImg = loadedImages[ASSETS.heads[expression]];
+            if (headImg && kevin.head.position) {
+                ctx.save();
+                ctx.translate(kevin.head.position.x, kevin.head.position.y);
+                ctx.rotate(kevin.head.angle);
+                ctx.drawImage(headImg, -35, -40, 70, 80);
+                ctx.restore();
+            }
+        }
+        
+        function drawProjectiles() {
+            const ctx = render.context;
+
+            projectiles.forEach(proj => {
+                if (!proj.body) return;
+
+                const vel = Math.sqrt(proj.body.velocity.x ** 2 + proj.body.velocity.y ** 2);
+
+                ctx.save();
+                ctx.translate(proj.body.position.x, proj.body.position.y);
+                ctx.rotate(proj.body.angle);
+
+                switch(proj.type) {
+                    case 'egg':
+                        // Motion trail for fast-moving eggs
+                        if (vel > 5) {
+                            ctx.globalAlpha = 0.3;
+                            ctx.fillStyle = '#FFA500';
+                            for (let i = 1; i <= 3; i++) {
+                                ctx.fillRect(-i * 8, -4, 8, 8);
+                            }
+                            ctx.globalAlpha = 1;
+                        }
+                        // Add glow effect
+                        ctx.shadowColor = '#FFD700';
+                        ctx.shadowBlur = 10;
+                        ctx.font = '30px serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('🥚', 0, 0);
+                        break;
+                    case 'snowball':
+                        // Motion trail
+                        if (vel > 5) {
+                            ctx.globalAlpha = 0.4;
+                            for (let i = 1; i <= 3; i++) {
+                                ctx.beginPath();
+                                ctx.arc(-i * 12, 0, 12 - i * 2, 0, Math.PI * 2);
+                                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                                ctx.fill();
+                            }
+                            ctx.globalAlpha = 1;
+                        }
+                        // Main snowball with gradient
+                        const gradient = ctx.createRadialGradient(0, 0, 5, 0, 0, 15);
+                        gradient.addColorStop(0, '#ffffff');
+                        gradient.addColorStop(1, '#e0e0e0');
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                        ctx.fillStyle = gradient;
+                        ctx.fill();
+                        ctx.strokeStyle = '#ccc';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        // Add sparkle dots
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                        ctx.fillRect(-5, -5, 2, 2);
+                        ctx.fillRect(3, 3, 2, 2);
+                        ctx.fillRect(-2, 4, 2, 2);
+                        break;
+                    case 'battery':
+                        // Electric glow
+                        ctx.shadowColor = '#00FF00';
+                        ctx.shadowBlur = 15;
+                        ctx.font = '35px serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('🔋', 0, 0);
+                        // Add electric sparks if moving fast
+                        if (vel > 5) {
+                            ctx.strokeStyle = '#FFFF00';
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.moveTo(-15, -10);
+                            ctx.lineTo(-20, -5);
+                            ctx.lineTo(-15, 0);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            ctx.moveTo(15, 10);
+                            ctx.lineTo(20, 5);
+                            ctx.lineTo(15, 0);
+                            ctx.stroke();
+                        }
+                        break;
+                    case 'screen':
+                        // TV static effect when moving
+                        if (vel > 3) {
+                            ctx.globalAlpha = 0.3;
+                            ctx.fillStyle = Math.random() > 0.5 ? '#0088ff' : '#00aaff';
+                            for (let i = 0; i < 5; i++) {
+                                ctx.fillRect(
+                                    Math.random() * 44 - 22,
+                                    Math.random() * 34 - 17,
+                                    4, 4
+                                );
+                            }
+                            ctx.globalAlpha = 1;
+                        }
+                        // TV body
+                        ctx.fillStyle = '#333';
+                        ctx.fillRect(-25, -20, 50, 40);
+                        // Screen with glow
+                        ctx.shadowColor = '#0088ff';
+                        ctx.shadowBlur = 10;
+                        const screenGradient = ctx.createLinearGradient(-22, -17, -22, 17);
+                        screenGradient.addColorStop(0, '#0066cc');
+                        screenGradient.addColorStop(1, '#003366');
+                        ctx.fillStyle = screenGradient;
+                        ctx.fillRect(-22, -17, 44, 34);
+                        // Text
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 10px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('SCREEN', 0, 0);
+                        ctx.fillText('PASS', 0, 10);
+                        break;
+                    case 'phone':
+                        ctx.shadowColor = '#0088ff';
+                        ctx.shadowBlur = 12;
+                        ctx.font = '40px serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('📱', 0, 0);
+                        break;
+                }
+
+                ctx.restore();
+            });
+        }
+        
+        // ==================== INPUT HANDLING ====================
+        function setupInputHandlers() {
+            const canvas = render.canvas;
+            
+            // Unified pointer events
+            canvas.addEventListener('pointerdown', onPointerDown);
+            canvas.addEventListener('pointermove', onPointerMove);
+            canvas.addEventListener('pointerup', onPointerUp);
+            canvas.addEventListener('pointerleave', onPointerUp);
+        }
+        
+        function onPointerDown(e) {
+            e.preventDefault();
+            resetActivity(); // Track user activity
+            const pos = getPointerPos(e);
+
+            // Check if clicking on Kevin
+            const bodies = [kevin.head, kevin.torso];
+            let hitKevin = false;
+            for (let body of bodies) {
+                if (Matter.Bounds.contains(body.bounds, pos)) {
+                    hitKevin = true;
+                    // EASTER EGG: Triple-click on head for secret
+                    if (body === kevin.head) {
+                        const now = Date.now();
+                        if (now - gameState.lastSecretClick < 500) {
+                            gameState.secretClicks++;
+                            if (gameState.secretClicks >= 3) {
+                                triggerSecretEasterEgg();
+                                gameState.secretClicks = 0;
+                                return;
+                            }
+                        } else {
+                            gameState.secretClicks = 1;
+                        }
+                        gameState.lastSecretClick = now;
+                    }
+
+                    gameState.isDragging = true;
+                    gameState.dragTarget = body;
+
+                    // Create a spring constraint from mouse to the grabbed body part
+                    // This allows ragdoll physics while dragging
+                    mouseConstraint = Constraint.create({
+                        pointA: pos,
+                        bodyB: body,
+                        pointB: { x: 0, y: 0 },
+                        stiffness: 0.9,
+                        damping: 0.1,
+                        render: { visible: false }
+                    });
+                    World.add(world, mouseConstraint);
+
+                    // Initialize velocity tracking
+                    gameState.velocityHistory = [{ pos: pos, time: performance.now() }];
+                    gameState.lastMousePos = pos;
+                    return;
+                }
+            }
+
+            // EASTER EGG: Track missed clicks for WIP Caller
+            if (!hitKevin) {
+                gameState.missedClicks++;
+                if (gameState.missedClicks >= 20) {
+                    triggerWIPCaller();
+                    gameState.missedClicks = 0;
+                }
+            }
+
+            // Otherwise, throw projectile
+            throwProjectile(pos);
+        }
+
+        function triggerJalenPhilosopher() {
+            // Jalen's deep philosophical quotes
+            const jalenQuotes = [
+                "You can't be afraid to be the thermostat.",
+                "The standard is the standard, even when it's not.",
+                "Success isn't linear.",
+                "I had a purpose before I had an opinion.",
+                "The process is the process."
+            ];
+
+            const quote = jalenQuotes[Math.floor(Math.random() * jalenQuotes.length)];
+
+            const philosopher = document.createElement('div');
+            philosopher.innerHTML = `
+                <div style="position: relative; text-align: center;">
+                    <div style="font-size: 80px; margin-bottom: 10px;">🧘‍♂️</div>
+                    <div style="font-size: 60px;">🥠</div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                                font-family: 'Oswald', sans-serif; font-size: 1.2rem; color: white;
+                                background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px;
+                                max-width: 300px; white-space: normal; line-height: 1.4;
+                                font-style: italic; margin-top: 40px;">
+                        "${quote}"
+                    </div>
+                </div>
+            `;
+            philosopher.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 400;
+                animation: philosopherFade 5s ease-out forwards;
+            `;
+            document.body.appendChild(philosopher);
+
+            if (!document.getElementById('philosopher-style')) {
+                const style = document.createElement('style');
+                style.id = 'philosopher-style';
+                style.textContent = `
+                    @keyframes philosopherFade {
+                        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                        10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                        80% { opacity: 1; }
+                        100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            setTimeout(() => philosopher.remove(), 5000);
+        }
+
+        function triggerWIPCaller() {
+            // Angry WIP caller rant
+            const rant = document.createElement('div');
+            rant.innerHTML = `
+                <div style="background: rgba(20,20,20,0.95); padding: 25px; border-radius: 15px; border: 3px solid #FF0000; max-width: 400px;">
+                    <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: #FF3333; margin-bottom: 10px; text-align: center;">
+                        📻 94WIP CALLER
+                    </div>
+                    <div style="font-family: 'Oswald', sans-serif; font-size: 1.1rem; color: white; text-align: center; line-height: 1.4;">
+                        "THIS TEAM HAS NO HEART! I'M DONE WITH THIS TEAM! HANG UP ON ME, I DON'T CARE!"
+                    </div>
+                    <div style="font-family: 'Press Start 2P', monospace; font-size: 0.5rem; color: #888; text-align: center; margin-top: 10px;">
+                        *static crackle*
+                    </div>
+                </div>
+            `;
+            rant.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 450;
+                animation: rantShake 3s ease-out forwards;
+            `;
+            document.body.appendChild(rant);
+
+            if (!document.getElementById('rant-style')) {
+                const style = document.createElement('style');
+                style.id = 'rant-style';
+                style.textContent = `
+                    @keyframes rantShake {
+                        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                        5% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+                        10% { transform: translate(-48%, -50%) scale(1); }
+                        15% { transform: translate(-52%, -50%) scale(1); }
+                        20% { transform: translate(-50%, -50%) scale(1); }
+                        80% { opacity: 1; }
+                        100% { opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            triggerScreenShake(10);
+
+            setTimeout(() => rant.remove(), 3000);
+        }
+
+        function triggerSecretEasterEgg() {
+            // Secret: Kevin admits the truth
+            const secret = document.createElement('div');
+            secret.innerHTML = `
+                <div style="background: rgba(0,0,0,0.95); padding: 30px; border-radius: 20px; max-width: 400px; border: 3px solid #FFD700;">
+                    <div style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: #FFD700; margin-bottom: 15px; text-align: center;">
+                        SECRET UNLOCKED! 🔓
+                    </div>
+                    <div style="font-family: 'Oswald', sans-serif; font-size: 1.2rem; color: white; text-align: center; line-height: 1.5;">
+                        "Maybe Doug Pederson knew what he was doing..."
+                    </div>
+                    <div style="font-family: 'Press Start 2P', monospace; font-size: 0.6rem; color: #888; text-align: center; margin-top: 15px;">
+                        - Kevin Patullo (off the record)
+                    </div>
+                </div>
+            `;
+            secret.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 500;
+                animation: secretReveal 4s ease-out forwards;
+            `;
+            document.body.appendChild(secret);
+
+            if (!document.getElementById('secret-style')) {
+                const style = document.createElement('style');
+                style.id = 'secret-style';
+                style.textContent = `
+                    @keyframes secretReveal {
+                        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(-10deg); }
+                        15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1) rotate(2deg); }
+                        25% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+                        75% { opacity: 1; }
+                        100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            spawnConfetti('#FFD700', 50);
+            triggerScreenShake(15);
+            showQuote("You found the secret!", kevin.head.position);
+
+            setTimeout(() => secret.remove(), 4000);
+        }
+
+        function onPointerMove(e) {
+            if (!gameState.isDragging || !mouseConstraint) return;
+            e.preventDefault();
+
+            const pos = getPointerPos(e);
+
+            // Update the constraint's target position (this creates the spring effect)
+            mouseConstraint.pointA = pos;
+
+            // Track velocity for throw calculation
+            gameState.velocityHistory.push({
+                pos: pos,
+                time: performance.now()
+            });
+
+            // Keep only last 5 samples for smoothing
+            if (gameState.velocityHistory.length > 5) {
+                gameState.velocityHistory.shift();
+            }
+
+            gameState.lastMousePos = pos;
+        }
+
+        function onPointerUp(e) {
+            if (!gameState.isDragging || !mouseConstraint) return;
+
+            // Calculate throw velocity from position history
+            let vx = 0, vy = 0;
+            if (gameState.velocityHistory.length > 2) {
+                const recent = gameState.velocityHistory.slice(-3);
+                for (let i = 1; i < recent.length; i++) {
+                    const dt = (recent[i].time - recent[i-1].time) / 16.67; // Normalize to ~60fps
+                    if (dt > 0) {
+                        vx += (recent[i].pos.x - recent[i-1].pos.x) / dt;
+                        vy += (recent[i].pos.y - recent[i-1].pos.y) / dt;
+                    }
+                }
+                vx /= (recent.length - 1);
+                vy /= (recent.length - 1);
+            }
+
+            // Remove the constraint to release the ragdoll
+            World.remove(world, mouseConstraint);
+            mouseConstraint = null;
+
+            // Apply throw velocity to the grabbed body part
+            Body.setVelocity(gameState.dragTarget, {
+                x: vx * CONFIG.THROW_MULTIPLIER * 0.15,
+                y: vy * CONFIG.THROW_MULTIPLIER * 0.15
+            });
+
+            gameState.isDragging = false;
+            gameState.dragTarget = null;
+        }
+        
+        function getPointerPos(e) {
+            const rect = render.canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX - rect.left) * (render.canvas.width / rect.width),
+                y: (e.clientY - rect.top) * (render.canvas.height / rect.height)
+            };
+        }
+        
+        // ==================== PROJECTILE SYSTEM ====================
+        function throwProjectile(pos) {
+            const weapon = gameState.selectedWeapon;
+            
+            // Check if weapon is locked
+            const btn = document.querySelector(`[data-weapon="${weapon}"]`);
+            if (btn && btn.classList.contains('locked')) return;
+            
+            // Special weapons
+            if (weapon === 'boo') {
+                triggerBoo(pos);
+                return;
+            }
+            if (weapon === 'tushpush') {
+                triggerTushPush();
+                return;
+            }
+            if (weapon === 'dealer') {
+                triggerDealerChoice();
+                return;
+            }
+            if (weapon === 'radio') {
+                triggerRadioCaller();
+                return;
+            }
+            if (weapon === 'bigdom') {
+                triggerBigDom();
+                return;
+            }
+            if (weapon === 'ajphone') {
+                triggerAJPhone();
+                return;
+            }
+            if (weapon === 'grease') {
+                triggerGrease();
+                return;
+            }
+            
+            // Regular projectiles
+            let body;
+            const startX = pos.x;
+            const startY = pos.y;
+            
+            // Calculate direction to Kevin
+            const targetX = kevin.head.position.x;
+            const targetY = kevin.head.position.y;
+            const angle = Math.atan2(targetY - startY, targetX - startX);
+            const speed = 20;
+            
+            switch(weapon) {
+                case 'egg':
+                    body = Bodies.circle(startX, startY, 12, {
+                        restitution: 0.3,
+                        friction: 0.5,
+                        label: 'projectile_egg'
+                    });
+                    break;
+                case 'snowball':
+                    // Track rapid snowball throws for Erin Andrews Coat
+                    const now = Date.now();
+                    if (now - gameState.lastSnowballTime < 500) {
+                        gameState.snowballCount++;
+                    } else {
+                        gameState.snowballCount = 1;
+                    }
+                    gameState.lastSnowballTime = now;
+
+                    if (gameState.snowballCount === 10) {
+                        equipErinAndrewsCoat();
+                        gameState.snowballCount = 0; // Reset counter
+                    }
+
+                    body = Bodies.circle(startX, startY, 15, {
+                        restitution: 0.4,
+                        friction: 0.3,
+                        label: 'projectile_snowball'
+                    });
+                    break;
+                case 'battery':
+                    body = Bodies.rectangle(startX, startY, 20, 35, {
+                        restitution: 0.2,
+                        friction: 0.6,
+                        density: 0.003,
+                        label: 'projectile_battery'
+                    });
+                    break;
+                case 'screen':
+                    body = Bodies.rectangle(startX, startY, 50, 40, {
+                        restitution: 0.3,
+                        friction: 0.4,
+                        density: 0.002,
+                        label: 'projectile_screen'
+                    });
+                    break;
+            }
+            
+            if (body) {
+                body.render.visible = false;
+                Body.setVelocity(body, {
+                    x: Math.cos(angle) * speed,
+                    y: Math.sin(angle) * speed
+                });
+                
+                World.add(world, body);
+                projectiles.push({ body, type: weapon });
+                
+                // Setup collision detection
+                setupProjectileCollision(body, weapon);
+                
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    World.remove(world, body);
+                    projectiles = projectiles.filter(p => p.body !== body);
+                }, 5000);
+            }
+        }
+        
+        function setupProjectileCollision(body, weaponType) {
+            Events.on(engine, 'collisionStart', function handler(event) {
+                event.pairs.forEach(pair => {
+                    const isProjectile = pair.bodyA === body || pair.bodyB === body;
+                    const isKevin = pair.bodyA.label?.includes('kevin') || pair.bodyB.label?.includes('kevin');
+                    
+                    if (isProjectile && isKevin) {
+                        onHitKevin(weaponType, body.position);
+                        Events.off(engine, 'collisionStart', handler);
+                    }
+                });
+            });
+        }
+        
+        // ==================== HIT REACTIONS ====================
+        function onHitKevin(weaponType, hitPos) {
+            const now = Date.now();
+            if (now - gameState.lastHitTime < 200) return; // Debounce
+            gameState.lastHitTime = now;
+
+            // Track hit streak
+            gameState.totalHits++;
+            if (now - gameState.lastStreakTime < 2000) {
+                gameState.hitStreak++;
+            } else {
+                gameState.hitStreak = 1;
+            }
+            gameState.lastStreakTime = now;
+
+            // Add score with streak multiplier
+            let scoreGain = CONFIG.SCORE_PER_HIT;
+            if (weaponType === 'battery') scoreGain *= 2;
+            if (weaponType === 'screen') scoreGain *= 1.5;
+
+            const streakMultiplier = Math.min(1 + (gameState.hitStreak * 0.1), 3);
+            scoreGain = Math.floor(scoreGain * streakMultiplier);
+
+            gameState.score += scoreGain;
+            updateScoreDisplay();
+            checkUnlocks();
+
+            // JUICE: Screen shake (intensity based on weapon)
+            let shakeIntensity = 8;
+            if (weaponType === 'battery') shakeIntensity = 15;
+            if (weaponType === 'tushpush' || weaponType === 'bigdom') shakeIntensity = 20;
+            triggerScreenShake(shakeIntensity);
+
+            // JUICE: Particle explosion (color and shape based on weapon)
+            let particleColor = '#FFD700'; // Gold
+            let particleOptions = { shapes: ['circle', 'star'] };
+
+            if (weaponType === 'egg') {
+                particleColor = '#FFA500'; // Orange
+                particleOptions = { shapes: ['circle'], sizeMin: 4, sizeMax: 10 };
+
+                // Track egg hits for Positivity Rabbit
+                gameState.eggHits++;
+                if (gameState.eggHits === 50) {
+                    triggerPositivityRabbit();
+                    gameState.eggHits = 0; // Reset counter
+                }
+            } else if (weaponType === 'snowball') {
+                particleColor = '#FFFFFF'; // White
+                particleOptions = { shapes: ['circle', 'star'], sizeMin: 3, sizeMax: 6, baseSpeed: 4 };
+            } else if (weaponType === 'battery') {
+                particleColor = '#00FF00'; // Green
+                particleOptions = { shapes: ['square', 'circle'], sizeMin: 2, sizeMax: 8, baseSpeed: 6, speedVariation: 8 };
+            } else if (weaponType === 'screen') {
+                particleColor = '#0088FF'; // Blue
+                particleOptions = { shapes: ['square'], sizeMin: 5, sizeMax: 10 };
+            } else if (weaponType === 'tushpush' || weaponType === 'bigdom') {
+                particleOptions = { shapes: ['star', 'circle'], sizeMin: 6, sizeMax: 12, baseSpeed: 5 };
+            }
+
+            createImpactParticles(hitPos.x, hitPos.y, particleColor, 15 + gameState.hitStreak, particleOptions);
+
+            // JUICE: Impact flash
+            createImpactFlash(hitPos);
+
+            // JUICE: Show score popup with streak
+            if (gameState.hitStreak > 1) {
+                showScorePopup(hitPos, `+${scoreGain} x${gameState.hitStreak}`);
+            } else {
+                showScorePopup(hitPos, `+${scoreGain}`);
+            }
+
+            // Reduce job security
+            let damage = CONFIG.JOB_SECURITY_DECAY;
+            if (weaponType === 'battery') damage *= 1.5;
+
+            gameState.jobSecurity = Math.max(0, gameState.jobSecurity - damage);
+            updateJobSecurityDisplay();
+
+            // Change expression based on job security
+            if (gameState.jobSecurity < 20) {
+                kevin.currentExpression = 'knockout';
+            } else if (gameState.jobSecurity < 40) {
+                kevin.currentExpression = 'crying';
+            } else if (gameState.jobSecurity < 60) {
+                kevin.currentExpression = 'distressed';
+            } else if (gameState.jobSecurity < 80) {
+                kevin.currentExpression = 'worried';
+            } else {
+                kevin.currentExpression = Math.random() > 0.5 ? 'surprised' : 'angry';
+            }
+
+            // Show quote based on job security level (or special egg quote)
+            let quote;
+            if (weaponType === 'egg') {
+                // EASTER EGG: Always play the house egging quote
+                quote = QUOTES.eggHouse;
+            } else if (gameState.jobSecurity >= 80) {
+                quote = QUOTES.confusion[Math.floor(Math.random() * QUOTES.confusion.length)];
+            } else if (gameState.jobSecurity >= 40) {
+                quote = QUOTES.defensive[Math.floor(Math.random() * QUOTES.defensive.length)];
+            } else {
+                quote = QUOTES.reality[Math.floor(Math.random() * QUOTES.reality.length)];
+            }
+            showQuote(quote, hitPos);
+
+            // Special effects
+            if (weaponType === 'egg') {
+                createEggSplat(hitPos);
+            }
+
+            // Play sound (if we had audio)
+            playHitSound(weaponType);
+
+            // Check for milestones
+            checkMilestones();
+
+            // Check for game over
+            if (gameState.jobSecurity <= 0) {
+                triggerLurieIntervention();
+            }
+
+            // Random events based on hits
+            if (Math.random() < 0.01) {
+                triggerJalenCameo();
+            }
+            if (Math.random() < 0.005) {
+                triggerRandomEvent();
+            }
+        }
+        
+        // ==================== SOUND SYNTHESIZER ====================
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new AudioContext();
+            }
+            // Resume context on user interaction (required by browsers)
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playTone(frequency, duration, type = 'sine', volume = 0.3) {
+            if (!audioContext) initAudio();
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+
+            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playHitSound(weaponType) {
+            initAudio();
+
+            // Different sounds for different weapons
+            switch(weaponType) {
+                case 'egg':
+                    // Splat sound - quick frequency drop
+                    playTone(400, 0.1, 'sawtooth', 0.2);
+                    setTimeout(() => playTone(200, 0.15, 'sawtooth', 0.15), 50);
+                    break;
+                case 'snowball':
+                    // Soft thud - lower frequency
+                    playTone(150, 0.12, 'sine', 0.2);
+                    break;
+                case 'battery':
+                    // Electric zap - harsh tone
+                    playTone(800, 0.08, 'square', 0.25);
+                    setTimeout(() => playTone(600, 0.08, 'square', 0.2), 80);
+                    break;
+                case 'screen':
+                    // TV static crash - multiple frequencies
+                    playTone(1200, 0.1, 'square', 0.15);
+                    playTone(800, 0.1, 'square', 0.15);
+                    playTone(400, 0.15, 'sawtooth', 0.1);
+                    break;
+                case 'phone':
+                    // Phone drop - descending tone
+                    playTone(600, 0.2, 'sine', 0.2);
+                    setTimeout(() => playTone(300, 0.2, 'sine', 0.15), 100);
+                    break;
+                default:
+                    // Generic hit - quick beep
+                    playTone(440, 0.1, 'sine', 0.2);
+            }
+
+            // Visual feedback backup
+            document.body.style.animation = 'none';
+            setTimeout(() => {
+                document.body.style.animation = '';
+            }, 10);
+        }
+
+        function playSuccessSound() {
+            initAudio();
+            // Ascending victory tune
+            playTone(523, 0.15, 'sine', 0.15); // C
+            setTimeout(() => playTone(659, 0.15, 'sine', 0.15), 150); // E
+            setTimeout(() => playTone(784, 0.25, 'sine', 0.2), 300); // G
+        }
+
+        function playErrorSound() {
+            initAudio();
+            // Descending error sound
+            playTone(300, 0.15, 'sawtooth', 0.2);
+            setTimeout(() => playTone(200, 0.2, 'sawtooth', 0.15), 150);
+        }
+        
+        function createEggSplat(pos) {
+            const splat = document.createElement('div');
+            splat.className = 'egg-splat';
+            splat.style.left = (pos.x / render.canvas.width * 100) + '%';
+            splat.style.top = (pos.y / render.canvas.height * 100) + '%';
+            document.getElementById('game-container').appendChild(splat);
+
+            setTimeout(() => splat.remove(), 5000);
+        }
+
+        function createImpactFlash(pos) {
+            const flash = document.createElement('div');
+            flash.style.cssText = `
+                position: absolute;
+                left: ${pos.x}px;
+                top: ${pos.y}px;
+                width: 100px;
+                height: 100px;
+                background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+                pointer-events: none;
+                transform: translate(-50%, -50%);
+                animation: flashFade 0.3s ease-out forwards;
+                z-index: 250;
+            `;
+            document.getElementById('game-container').appendChild(flash);
+
+            if (!document.getElementById('flash-style')) {
+                const style = document.createElement('style');
+                style.id = 'flash-style';
+                style.textContent = `
+                    @keyframes flashFade {
+                        from { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+                        to { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            setTimeout(() => flash.remove(), 300);
+        }
+
+        function showScorePopup(pos, text) {
+            const popup = document.createElement('div');
+            popup.textContent = text;
+
+            // Color based on streak
+            let color = '#FFD700'; // Gold
+            let shadowColor = '#000';
+            if (gameState.hitStreak >= 10) {
+                color = '#FF3333'; // Red for high streak
+                shadowColor = '#FFD700';
+            } else if (gameState.hitStreak >= 5) {
+                color = '#00FFFF'; // Cyan for medium streak
+                shadowColor = '#0066CC';
+            }
+
+            popup.style.cssText = `
+                position: absolute;
+                left: ${pos.x}px;
+                top: ${pos.y - 30}px;
+                font-family: 'Press Start 2P', monospace;
+                font-size: ${0.8 + Math.min(gameState.hitStreak * 0.05, 0.5)}rem;
+                color: ${color};
+                font-weight: bold;
+                text-shadow: 3px 3px 0 ${shadowColor}, -2px -2px 0 ${shadowColor};
+                pointer-events: none;
+                z-index: 260;
+                animation: ${gameState.hitStreak >= 5 ? 'scorePopupBounce' : 'scorePopup'} 1s ease-out forwards;
+                filter: drop-shadow(0 0 ${gameState.hitStreak >= 5 ? '10px' : '5px'} ${color});
+            `;
+            document.getElementById('game-container').appendChild(popup);
+
+            if (!document.getElementById('score-popup-style')) {
+                const style = document.createElement('style');
+                style.id = 'score-popup-style';
+                style.textContent = `
+                    @keyframes scorePopup {
+                        from { opacity: 1; transform: translateY(0) scale(1); }
+                        to { opacity: 0; transform: translateY(-50px) scale(1.5); }
+                    }
+                    @keyframes scorePopupBounce {
+                        0% { opacity: 1; transform: translateY(0) scale(0.8); }
+                        20% { transform: translateY(-15px) scale(1.3); }
+                        40% { transform: translateY(-25px) scale(1.1); }
+                        60% { transform: translateY(-35px) scale(1.4); }
+                        80% { transform: translateY(-45px) scale(1.2); }
+                        100% { opacity: 0; transform: translateY(-60px) scale(1.6); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            setTimeout(() => popup.remove(), 1000);
+        }
+        
+        // ==================== SPECIAL WEAPONS ====================
+        function triggerBoo(pos) {
+            // Create multiple cascading shockwaves
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    const wave = document.createElement('div');
+                    wave.style.cssText = `
+                        position: absolute;
+                        left: ${pos.x}px;
+                        top: ${pos.y}px;
+                        width: 20px;
+                        height: 20px;
+                        border: ${4 - i}px solid ${i === 0 ? '#FF3333' : i === 1 ? '#FF6666' : 'white'};
+                        border-radius: 50%;
+                        pointer-events: none;
+                        animation: shockwave ${0.6 + i * 0.1}s ease-out forwards;
+                        z-index: ${250 - i};
+                    `;
+                    document.getElementById('game-container').appendChild(wave);
+                    setTimeout(() => wave.remove(), 700);
+                }, i * 100);
+            }
+
+            // BOO ghost emoji explosion
+            for (let i = 0; i < 8; i++) {
+                const angle = (Math.PI * 2 * i) / 8;
+                const ghost = document.createElement('div');
+                ghost.textContent = '👻';
+                ghost.style.cssText = `
+                    position: absolute;
+                    left: ${pos.x}px;
+                    top: ${pos.y}px;
+                    font-size: 30px;
+                    pointer-events: none;
+                    z-index: 240;
+                    animation: ghostFly${i} 0.8s ease-out forwards;
+                `;
+                document.getElementById('game-container').appendChild(ghost);
+
+                // Create unique animation for each ghost
+                const styleId = `ghost-fly-${i}`;
+                if (!document.getElementById(styleId)) {
+                    const style = document.createElement('style');
+                    style.id = styleId;
+                    style.textContent = `
+                        @keyframes ghostFly${i} {
+                            from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                            to { opacity: 0; transform: translate(${Math.cos(angle) * 100 - 50}%, ${Math.sin(angle) * 100 - 50}%) scale(0.5); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                setTimeout(() => ghost.remove(), 800);
+            }
+
+            // Add shockwave animation if not exists
+            if (!document.getElementById('shockwave-style')) {
+                const style = document.createElement('style');
+                style.id = 'shockwave-style';
+                style.textContent = `
+                    @keyframes shockwave {
+                        from { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                        to { transform: translate(-50%, -50%) scale(25); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            // Push Kevin away from click point with more force
+            const dx = kevin.head.position.x - pos.x;
+            const dy = kevin.head.position.y - pos.y;
+            const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+            const force = 0.7;
+
+            Body.applyForce(kevin.head, kevin.head.position, {
+                x: (dx / dist) * force,
+                y: (dy / dist) * force
+            });
+            Body.applyForce(kevin.torso, kevin.torso.position, {
+                x: (dx / dist) * force * 0.8,
+                y: (dy / dist) * force * 0.8
+            });
+
+            // Show "BOOOO" text
+            showQuote("BOOOOOOOO!", { x: pos.x, y: pos.y - 50 });
+
+            // Screen shake
+            triggerScreenShake(12);
+
+            // Sound - deep booming effect
+            playTone(80, 0.3, 'sine', 0.3);
+            setTimeout(() => playTone(60, 0.4, 'sine', 0.25), 100);
+
+            // Particles
+            createImpactParticles(pos.x, pos.y, '#FFFFFF', 30, {
+                shapes: ['star', 'circle'],
+                sizeMin: 4,
+                sizeMax: 10,
+                baseSpeed: 5,
+                speedVariation: 7
+            });
+
+            gameState.score += 5;
+            updateScoreDisplay();
+        }
+        
+        function triggerTushPush() {
+            // Two walls crush from sides
+            const w = render.canvas.width;
+            const y = kevin.torso.position.y;
+
+            const leftWall = Bodies.rectangle(-50, y, 100, 200, { isStatic: true });
+            const rightWall = Bodies.rectangle(w + 50, y, 100, 200, { isStatic: true });
+
+            World.add(world, [leftWall, rightWall]);
+
+            // Create visual O-line players crushing in
+            const leftPlayers = document.createElement('div');
+            leftPlayers.innerHTML = '🏈👨‍💼👨‍💼👨‍💼👨‍💼';
+            leftPlayers.style.cssText = `
+                position: absolute;
+                left: -100px;
+                top: ${y - 50}px;
+                font-size: 50px;
+                z-index: 290;
+                transform: rotate(-15deg);
+            `;
+            document.getElementById('game-container').appendChild(leftPlayers);
+
+            const rightPlayers = document.createElement('div');
+            rightPlayers.innerHTML = '👨‍💼👨‍💼👨‍💼👨‍💼🏈';
+            rightPlayers.style.cssText = `
+                position: absolute;
+                right: -100px;
+                top: ${y - 50}px;
+                font-size: 50px;
+                z-index: 290;
+                transform: rotate(15deg);
+            `;
+            document.getElementById('game-container').appendChild(rightPlayers);
+
+            // Warning flash
+            const warning = document.createElement('div');
+            warning.textContent = '⚠️ TUSH PUSH! ⚠️';
+            warning.style.cssText = `
+                position: absolute;
+                top: 50px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-family: 'Bebas Neue', sans-serif;
+                font-size: 2rem;
+                color: #FF3333;
+                text-shadow: 2px 2px 0 #000;
+                z-index: 300;
+                animation: warningFlash 0.5s ease infinite;
+            `;
+            document.getElementById('game-container').appendChild(warning);
+
+            if (!document.getElementById('warning-flash-style')) {
+                const style = document.createElement('style');
+                style.id = 'warning-flash-style';
+                style.textContent = `
+                    @keyframes warningFlash {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.3; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            // Animate walls crushing in
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 0.05;
+                const leftX = -50 + progress * (w/2 - 50);
+                const rightX = w + 50 - progress * (w/2 - 50);
+
+                Body.setPosition(leftWall, { x: leftX, y });
+                Body.setPosition(rightWall, { x: rightX, y });
+
+                // Move visual players too
+                leftPlayers.style.left = (leftX - 100) + 'px';
+                rightPlayers.style.right = (w - rightX - 100) + 'px';
+
+                // Intensify shake as they get closer
+                if (progress > 0.5) {
+                    triggerScreenShake(progress * 20);
+                    // Crushing rumble sound that intensifies
+                    if (progress % 0.2 < 0.05) {
+                        playTone(120 - (progress * 40), 0.1, 'sawtooth', 0.15 + progress * 0.15);
+                    }
+                }
+
+                if (progress >= 1) {
+                    clearInterval(interval);
+                    warning.remove();
+                    setTimeout(() => {
+                        World.remove(world, [leftWall, rightWall]);
+                        leftPlayers.remove();
+                        rightPlayers.remove();
+                    }, 500);
+                }
+            }, 30);
+
+            setTimeout(() => onHitKevin('tushpush', kevin.head.position), 500);
+        }
+        
+        function triggerDealerChoice() {
+            // Mystery card shuffle animation
+            const cardContainer = document.createElement('div');
+            cardContainer.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 300;
+                display: flex;
+                gap: 10px;
+            `;
+
+            // Create 3 spinning mystery cards
+            for (let i = 0; i < 3; i++) {
+                const card = document.createElement('div');
+                card.textContent = '🃏';
+                card.style.cssText = `
+                    font-size: 60px;
+                    animation: cardSpin${i} 0.8s ease-out forwards;
+                `;
+                cardContainer.appendChild(card);
+
+                // Create unique spin animation for each card
+                const styleId = `card-spin-${i}`;
+                if (!document.getElementById(styleId)) {
+                    const style = document.createElement('style');
+                    style.id = styleId;
+                    style.textContent = `
+                        @keyframes cardSpin${i} {
+                            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+                            50% { transform: scale(1.2) rotate(${180 + i * 120}deg); opacity: 1; }
+                            100% { transform: scale(0) rotate(${360 + i * 180}deg); opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+
+            document.getElementById('game-container').appendChild(cardContainer);
+
+            setTimeout(() => {
+                // Sparkle burst
+                for (let i = 0; i < 20; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.textContent = '✨';
+                    const angle = (Math.PI * 2 * i) / 20;
+                    const distance = 100;
+                    sparkle.style.cssText = `
+                        position: absolute;
+                        left: 50%;
+                        top: 50%;
+                        font-size: 20px;
+                        pointer-events: none;
+                        z-index: 290;
+                        animation: sparkleFly${i} 1s ease-out forwards;
+                    `;
+                    cardContainer.appendChild(sparkle);
+
+                    const sparkleStyleId = `sparkle-fly-${i}`;
+                    if (!document.getElementById(sparkleStyleId)) {
+                        const style = document.createElement('style');
+                        style.id = sparkleStyleId;
+                        style.textContent = `
+                            @keyframes sparkleFly${i} {
+                                from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                                to { opacity: 0; transform: translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0.5); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+                }
+
+                // Random object that ALWAYS misses
+                const weapons = ['snowball', 'battery', 'screen'];
+                const randomWeapon = weapons[Math.floor(Math.random() * weapons.length)];
+
+                // Throw but miss intentionally (way off target)
+                const missX = kevin.head.position.x + (Math.random() > 0.5 ? 300 : -300);
+                const missY = kevin.head.position.y + (Math.random() - 0.5) * 400;
+
+                throwProjectileAt(randomWeapon, missX, missY);
+                showQuote("It's a monster... it just presented itself.", kevin.head.position);
+
+                setTimeout(() => cardContainer.remove(), 1200);
+            }, 400);
+        }
+        
+        function throwProjectileAt(type, targetX, targetY) {
+            const startX = Math.random() * render.canvas.width;
+            const startY = 0;
+            
+            let body;
+            switch(type) {
+                case 'snowball':
+                    body = Bodies.circle(startX, startY, 15, { restitution: 0.4 });
+                    break;
+                case 'battery':
+                    body = Bodies.rectangle(startX, startY, 20, 35, { density: 0.003 });
+                    break;
+                case 'screen':
+                    body = Bodies.rectangle(startX, startY, 50, 40, { density: 0.002 });
+                    break;
+            }
+            
+            if (body) {
+                body.render.visible = false;
+                const angle = Math.atan2(targetY - startY, targetX - startX);
+                Body.setVelocity(body, {
+                    x: Math.cos(angle) * 15,
+                    y: Math.sin(angle) * 15
+                });
+                World.add(world, body);
+                projectiles.push({ body, type });
+                
+                setTimeout(() => {
+                    World.remove(world, body);
+                    projectiles = projectiles.filter(p => p.body !== body);
+                }, 3000);
+            }
+        }
+        
+        function triggerRadioCaller() {
+            // Show giant WIP logo dropping
+            const wipOverlay = document.createElement('div');
+            wipOverlay.innerHTML = `<img src="${ASSETS.wipLogo}" style="width: 300px; height: auto;">`;
+            wipOverlay.style.cssText = `
+                position: absolute;
+                left: 50%;
+                top: -300px;
+                transform: translateX(-50%);
+                z-index: 290;
+                animation: wipDrop 1.5s cubic-bezier(0.5, 0, 0.5, 1) forwards;
+                filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+            `;
+            document.getElementById('game-container').appendChild(wipOverlay);
+
+            if (!document.getElementById('wip-style')) {
+                const style = document.createElement('style');
+                style.id = 'wip-style';
+                style.textContent = `
+                    @keyframes wipDrop {
+                        0% { top: -300px; transform: translateX(-50%) rotate(-10deg); }
+                        60% { top: 40%; transform: translateX(-50%) rotate(5deg); }
+                        75% { top: 35%; transform: translateX(-50%) rotate(-2deg); }
+                        100% { top: 40%; transform: translateX(-50%) rotate(0deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            // Physics impact
+            setTimeout(() => {
+                triggerScreenShake(25);
+                createImpactParticles(render.canvas.width / 2, render.canvas.height * 0.4, '#00FF00', 50);
+
+                // Impact force - push Kevin sideways and upward
+                const forceX = (Math.random() - 0.5) * 0.5;
+                const forceY = -0.4; // Negative = upward in Matter.js
+                Body.applyForce(kevin.head, kevin.head.position, { x: forceX, y: forceY });
+                Body.applyForce(kevin.torso, kevin.torso.position, { x: forceX * 0.8, y: forceY * 0.7 });
+
+                showQuote("FIRE HIM!", kevin.head.position);
+                onHitKevin('radio', kevin.head.position);
+            }, 1000);
+
+            setTimeout(() => {
+                wipOverlay.remove();
+            }, 3000);
+        }
+        
+        function triggerBigDom() {
+            // Warning indicator
+            const warning = document.createElement('div');
+            warning.textContent = '⚠️ INCOMING: BIG DOM! ⚠️';
+            warning.style.cssText = `
+                position: absolute;
+                top: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-family: 'Bebas Neue', sans-serif;
+                font-size: 1.5rem;
+                color: #FFD700;
+                text-shadow: 2px 2px 0 #000;
+                z-index: 310;
+                animation: warningBounce 0.3s ease infinite;
+            `;
+            document.getElementById('game-container').appendChild(warning);
+
+            if (!document.getElementById('warning-bounce-style')) {
+                const style = document.createElement('style');
+                style.id = 'warning-bounce-style';
+                style.textContent = `
+                    @keyframes warningBounce {
+                        0%, 100% { transform: translateX(-50%) scale(1); }
+                        50% { transform: translateX(-50%) scale(1.1); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            setTimeout(() => warning.remove(), 2000);
+
+            // Security guard tackles across screen - VISUAL
+            const startX = -150;
+            const y = kevin.torso.position.y;
+
+            // Create visual representation with trailing effect
+            const domVisual = document.createElement('div');
+            domVisual.innerHTML = '🇮🇹💪🏃💨';
+            domVisual.style.cssText = `
+                position: absolute;
+                left: ${startX}px;
+                top: ${y}px;
+                font-size: 80px;
+                z-index: 280;
+                transform: translateY(-50%);
+                filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+            `;
+            document.getElementById('game-container').appendChild(domVisual);
+
+            let domX = startX;
+            const speed = 30; // Faster!
+            let dustTrail = [];
+
+            // Animate across screen
+            const animateDom = setInterval(() => {
+                domX += speed;
+                domVisual.style.left = domX + 'px';
+
+                // Create dust cloud trail
+                if (Math.random() > 0.5) {
+                    const dust = document.createElement('div');
+                    dust.textContent = '💨';
+                    dust.style.cssText = `
+                        position: absolute;
+                        left: ${domX - 50}px;
+                        top: ${y + 20}px;
+                        font-size: 40px;
+                        opacity: 0.8;
+                        z-index: 275;
+                        animation: dustFade 0.8s ease-out forwards;
+                    `;
+                    document.getElementById('game-container').appendChild(dust);
+                    dustTrail.push(dust);
+
+                    if (!document.getElementById('dust-fade-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'dust-fade-style';
+                        style.textContent = `
+                            @keyframes dustFade {
+                                from { opacity: 0.8; transform: scale(1); }
+                                to { opacity: 0; transform: scale(2); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    setTimeout(() => dust.remove(), 800);
+                }
+
+                // Check for collision with Kevin
+                const distToKevin = Math.abs(domX - kevin.torso.position.x);
+                if (distToKevin < 100) {
+                    // TACKLE IMPACT!
+
+                    // Create impact star burst
+                    const impact = document.createElement('div');
+                    impact.innerHTML = '💥💥💥';
+                    impact.style.cssText = `
+                        position: absolute;
+                        left: ${kevin.torso.position.x}px;
+                        top: ${kevin.torso.position.y}px;
+                        font-size: 80px;
+                        transform: translate(-50%, -50%);
+                        z-index: 295;
+                        animation: impactBurst 0.5s ease-out forwards;
+                    `;
+                    document.getElementById('game-container').appendChild(impact);
+
+                    if (!document.getElementById('impact-burst-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'impact-burst-style';
+                        style.textContent = `
+                            @keyframes impactBurst {
+                                0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5) rotate(0deg); }
+                                50% { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(180deg); }
+                                100% { opacity: 0; transform: translate(-50%, -50%) scale(2) rotate(360deg); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    setTimeout(() => impact.remove(), 500);
+
+                    // Apply strong tackle force
+                    Body.applyForce(kevin.head, kevin.head.position, { x: 0.8, y: -0.3 });
+                    Body.applyForce(kevin.torso, kevin.torso.position, { x: 0.7, y: -0.2 });
+                    onHitKevin('bigdom', kevin.head.position);
+                    createImpactParticles(kevin.torso.position.x, kevin.torso.position.y, '#FFD700', 50, {
+                        shapes: ['star'],
+                        sizeMin: 5,
+                        sizeMax: 12,
+                        baseSpeed: 7,
+                        speedVariation: 10
+                    });
+                    createImpactParticles(kevin.torso.position.x, kevin.torso.position.y, '#FF3333', 30, {
+                        shapes: ['square', 'circle'],
+                        sizeMin: 4,
+                        sizeMax: 8,
+                        baseSpeed: 5,
+                        speedVariation: 6
+                    });
+                    triggerScreenShake(25);
+                    showQuote("SIDELINE VIOLATION!", kevin.head.position);
+
+                    // Massive impact sound
+                    playTone(100, 0.25, 'sawtooth', 0.35);
+                    setTimeout(() => playTone(50, 0.3, 'sine', 0.3), 100);
+
+                    clearInterval(animateDom);
+                    setTimeout(() => domVisual.remove(), 500);
+                }
+
+                // Remove if off screen
+                if (domX > render.canvas.width + 150) {
+                    clearInterval(animateDom);
+                    domVisual.remove();
+                }
+            }, 16);
+        }
+        
+        function triggerAJPhone() {
+            // AJ Brown livestream phone drops - VISUAL (ultra simplified)
+            const startX = kevin.head.position.x;
+            const startY = 50; // Start at visible position
+
+            // Create SUPER visible phone
+            const phoneVisual = document.createElement('div');
+            phoneVisual.textContent = '📱';  // Just phone emoji
+            phoneVisual.style.cssText = `
+                position: absolute;
+                left: ${startX - 60}px;
+                top: ${startY}px;
+                font-size: 120px;
+                z-index: 9999;
+                pointer-events: none;
+                background: rgba(255,0,0,0.3);
+            `;
+            document.getElementById('game-container').appendChild(phoneVisual);
+
+            console.log('Phone visual created at', startX, startY, phoneVisual);
+
+            // Physics body for collision
+            const phone = Bodies.rectangle(startX, startY, 80, 140, {
+                density: 0.004,
+                label: 'projectile_ajphone',
+                render: { visible: false }
+            });
+            World.add(world, phone);
+            projectiles.push({ body: phone, type: 'phone' });
+
+            // Update visual position to match physics
+            const updateVisual = setInterval(() => {
+                if (phone.position && phoneVisual.parentElement) {
+                    phoneVisual.style.left = (phone.position.x - 60) + 'px';
+                    phoneVisual.style.top = (phone.position.y - 60) + 'px';
+                    phoneVisual.style.transform = `rotate(${phone.angle}rad)`;
+                    console.log('Updating phone position:', phone.position.x, phone.position.y);
+                }
+            }, 16);
+
+            setupProjectileCollision(phone, 'ajphone');
+
+            setTimeout(() => {
+                showQuote("It's a s**tshow!", kevin.head.position);
+            }, 600);
+
+            setTimeout(() => {
+                clearInterval(updateVisual);
+                phoneVisual.remove();
+                World.remove(world, phone);
+                projectiles = projectiles.filter(p => p.body !== phone);
+            }, 5000);
+        }
+        
+        function triggerGrease() {
+            // Make Kevin slip around - VISUAL
+            gameState.greaseActive = true;
+
+            // Show greased light pole
+            const greaseVisual = document.createElement('div');
+            greaseVisual.innerHTML = `<img src="${ASSETS.lightPole}" style="width: 120px; height: auto;">`;
+            greaseVisual.style.cssText = `
+                position: absolute;
+                left: ${kevin.torso.position.x}px;
+                top: ${kevin.torso.position.y - 100}px;
+                transform: translate(-50%, -50%);
+                z-index: 280;
+                animation: greasePour 2s ease-out forwards;
+            `;
+            document.getElementById('game-container').appendChild(greaseVisual);
+
+            if (!document.getElementById('grease-style')) {
+                const style = document.createElement('style');
+                style.id = 'grease-style';
+                style.textContent = `
+                    @keyframes greasePour {
+                        0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                        50% { transform: translate(-50%, 0%) scale(1.2); }
+                        100% { opacity: 0; transform: translate(-50%, 50%) scale(0.8); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            // Add slippery floor effect
+            const slipFloor = document.createElement('div');
+            slipFloor.style.cssText = `
+                position: absolute;
+                left: ${kevin.torso.position.x - 100}px;
+                top: ${render.canvas.height - 150}px;
+                width: 200px;
+                height: 30px;
+                background: linear-gradient(90deg, transparent, rgba(100, 200, 255, 0.6), transparent);
+                border-radius: 50%;
+                z-index: 50;
+                animation: slipShine 0.5s ease-in-out infinite alternate;
+            `;
+            document.getElementById('game-container').appendChild(slipFloor);
+
+            if (!document.getElementById('slip-style')) {
+                const style = document.createElement('style');
+                style.id = 'slip-style';
+                style.textContent = `
+                    @keyframes slipShine {
+                        from { opacity: 0.6; }
+                        to { opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            // Reduce friction dramatically
+            kevin.head.friction = 0.01;
+            kevin.torso.friction = 0.01;
+
+            // Apply random slipping forces
+            const interval = setInterval(() => {
+                if (!gameState.greaseActive) {
+                    clearInterval(interval);
+                    kevin.head.friction = CONFIG.FRICTION;
+                    kevin.torso.friction = CONFIG.FRICTION;
+                    return;
+                }
+
+                const fx = (Math.random() - 0.5) * 0.1;
+                const fy = (Math.random() - 0.5) * 0.05;
+                Body.applyForce(kevin.head, kevin.head.position, { x: fx, y: fy });
+            }, 100);
+
+            // End after 5 seconds
+            setTimeout(() => {
+                gameState.greaseActive = false;
+                slipFloor.remove();
+            }, 5000);
+
+            setTimeout(() => greaseVisual.remove(), 2000);
+
+            showQuote("*slipping noises*", kevin.head.position);
+        }
+
+        function equipErinAndrewsCoat() {
+            showQuote("Weather Protection: MAX", kevin.head.position);
+
+            // Scale up the torso physics body to simulate the giant coat
+            Body.scale(kevin.torso, 1.5, 1.5);
+            kevin.torso.restitution = 1.2; // Super bouncy
+
+            // Add visual coat emoji overlay attached to torso
+            const coat = document.createElement('div');
+            coat.textContent = '🧥';
+            coat.style.cssText = `position: absolute; font-size: 100px; pointer-events: none; z-index: 50;`;
+            document.getElementById('game-container').appendChild(coat);
+
+            // Simple loop to follow torso
+            const coatInterval = setInterval(() => {
+                if (!kevin.torso) { clearInterval(coatInterval); coat.remove(); return; }
+                const pos = kevin.torso.position;
+                coat.style.left = (pos.x - 50) + 'px';
+                coat.style.top = (pos.y - 60) + 'px';
+                coat.style.transform = `rotate(${kevin.torso.angle}rad)`;
+            }, 16);
+
+            // Success sound
+            playSuccessSound();
+
+            // Remove after 10 seconds
+            setTimeout(() => {
+                clearInterval(coatInterval);
+                coat.remove();
+                Body.scale(kevin.torso, 0.66, 0.66); // Scale back down
+                kevin.torso.restitution = CONFIG.BOUNCE; // Reset bounce
+            }, 10000);
+        }
+
+        function triggerPositivityRabbit() {
+            const bunny = document.createElement('div');
+            bunny.textContent = '🐰';
+            bunny.style.cssText = `
+                position: fixed; bottom: -200px; left: 50%; transform: translateX(-50%);
+                font-size: 300px; z-index: 400; transition: bottom 2s ease;
+            `;
+            document.body.appendChild(bunny);
+
+            setTimeout(() => bunny.style.bottom = '-50px', 100); // Rise up
+
+            showQuote("VIBES RESTORED", kevin.head.position);
+            gameState.jobSecurity = 100; // Full heal
+            updateJobSecurityDisplay();
+
+            // Play success sound
+            playSuccessSound();
+
+            // Particle celebration
+            setTimeout(() => {
+                const centerX = render.canvas.width / 2;
+                const centerY = render.canvas.height / 2;
+                createImpactParticles(centerX, centerY, '#FFD700', 60, {
+                    shapes: ['star', 'circle'],
+                    sizeMin: 6,
+                    sizeMax: 14,
+                    baseSpeed: 10,
+                    speedVariation: 12
+                });
+            }, 500);
+
+            setTimeout(() => {
+                bunny.style.bottom = '-400px'; // Go back down
+                setTimeout(() => bunny.remove(), 2000);
+            }, 4000);
+        }
+
+        // ==================== MILESTONES & CELEBRATIONS ====================
+        function checkMilestones() {
+            const hits = gameState.totalHits;
+
+            // Check for milestone hits
+            if (hits === 10) {
+                triggerMilestoneCelebration("10 HITS!", "The offense is struggling!");
+            } else if (hits === 25) {
+                triggerMilestoneCelebration("25 HITS!", "This is getting out of hand!");
+            } else if (hits === 50) {
+                triggerMilestoneCelebration("50 HITS! 🏈", "Fire the offensive coordinator!");
+                spawnConfetti('#004C54', 50);
+            } else if (hits === 100) {
+                triggerMilestoneCelebration("💯 CENTURY!", "UNPRECEDENTED INCOMPETENCE!");
+                spawnConfetti('#FFD700', 100);
+                triggerScreenShake(25);
+            } else if (hits === 200) {
+                triggerMilestoneCelebration("200 HITS! 🔥", "THE MADNESS CONTINUES!");
+                spawnConfetti('#FF3333', 150);
+                triggerScreenShake(30);
+            }
+
+            // Check for streak milestones
+            if (gameState.hitStreak === 5) {
+                showQuote("ON FIRE! 🔥", kevin.head.position);
+            } else if (gameState.hitStreak === 10) {
+                showQuote("UNSTOPPABLE! ⚡", kevin.head.position);
+                spawnConfetti('#FFD700', 30);
+            } else if (gameState.hitStreak === 20) {
+                showQuote("GODLIKE! 👑", kevin.head.position);
+                spawnConfetti('#FFD700', 50);
+                triggerScreenShake(20);
+            } else if (gameState.hitStreak === 30 && !gameState.rageMode) {
+                triggerRageMode();
+            }
+
+            // End rage mode if streak is broken
+            if (gameState.hitStreak < 5 && gameState.rageMode) {
+                endRageMode();
+            }
+        }
+
+        function triggerRageMode() {
+            gameState.rageMode = true;
+
+            const rageOverlay = document.createElement('div');
+            rageOverlay.id = 'rage-mode-overlay';
+            rageOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                border: 10px solid #FF0000;
+                pointer-events: none;
+                z-index: 350;
+                animation: ragePulse 0.5s ease-in-out infinite alternate;
+                box-shadow: inset 0 0 50px rgba(255, 0, 0, 0.5);
+            `;
+            document.body.appendChild(rageOverlay);
+
+            if (!document.getElementById('rage-style')) {
+                const style = document.createElement('style');
+                style.id = 'rage-style';
+                style.textContent = `
+                    @keyframes ragePulse {
+                        from { border-color: #FF0000; box-shadow: inset 0 0 50px rgba(255, 0, 0, 0.5); }
+                        to { border-color: #FF6666; box-shadow: inset 0 0 80px rgba(255, 0, 0, 0.8); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            const rageText = document.createElement('div');
+            rageText.innerHTML = '🔥 RAGE MODE ACTIVATED 🔥';
+            rageText.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-family: 'Bebas Neue', sans-serif;
+                font-size: clamp(2rem, 8vw, 4rem);
+                color: #FF3333;
+                text-shadow: 3px 3px 0 #000, -2px -2px 0 #000;
+                z-index: 400;
+                animation: rageAnnounce 2s ease-out forwards;
+            `;
+            document.body.appendChild(rageText);
+
+            if (!document.getElementById('rage-announce-style')) {
+                const style = document.createElement('style');
+                style.id = 'rage-announce-style';
+                style.textContent = `
+                    @keyframes rageAnnounce {
+                        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                        10% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+                        20% { transform: translate(-50%, -50%) scale(1); }
+                        80% { opacity: 1; }
+                        100% { opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            triggerScreenShake(30);
+            spawnConfetti('#FF3333', 100);
+            showQuote("UNSTOPPABLE RAGE!!!", kevin.head.position);
+
+            setTimeout(() => rageText.remove(), 2000);
+        }
+
+        function endRageMode() {
+            gameState.rageMode = false;
+            const overlay = document.getElementById('rage-mode-overlay');
+            if (overlay) overlay.remove();
+        }
+
+        function triggerMilestoneCelebration(title, subtitle) {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-family: 'Bebas Neue', sans-serif;
+                text-align: center;
+                z-index: 400;
+                pointer-events: none;
+                animation: milestoneAppear 2s ease-out forwards;
+            `;
+            overlay.innerHTML = `
+                <div style="font-size: clamp(2rem, 8vw, 5rem); color: #FFD700; text-shadow: 3px 3px 0 #000, -2px -2px 0 #000;">${title}</div>
+                <div style="font-size: clamp(1rem, 3vw, 2rem); color: white; text-shadow: 2px 2px 0 #000; margin-top: 10px;">${subtitle}</div>
+            `;
+            document.body.appendChild(overlay);
+
+            if (!document.getElementById('milestone-style')) {
+                const style = document.createElement('style');
+                style.id = 'milestone-style';
+                style.textContent = `
+                    @keyframes milestoneAppear {
+                        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                        10% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+                        20% { transform: translate(-50%, -50%) scale(1); }
+                        80% { opacity: 1; }
+                        100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            setTimeout(() => overlay.remove(), 2000);
+        }
+
+        function spawnConfetti(color, count) {
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * render.canvas.width;
+                    const y = -20;
+                    particles.push({
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 3,
+                        vy: Math.random() * 3 + 2,
+                        life: 1.5,
+                        size: 4 + Math.random() * 4,
+                        color: color
+                    });
+                }, i * 10);
+            }
+        }
+
+        // ==================== RANDOM EVENTS ====================
+        const RANDOM_EVENTS = [
+            {
+                name: "Three-Way Monster",
+                execute: () => {
+                    showQuote("It's a monster... it just presented itself.", kevin.head.position);
+
+                    // Create mysterious portal effect
+                    const portalX = render.canvas.width / 2;
+                    const portalY = render.canvas.height * 0.3;
+
+                    // Spiral particle burst
+                    for (let i = 0; i < 40; i++) {
+                        setTimeout(() => {
+                            const angle = (i / 40) * Math.PI * 4;
+                            const radius = i * 3;
+                            const x = portalX + Math.cos(angle) * radius;
+                            const y = portalY + Math.sin(angle) * radius;
+                            createImpactParticles(x, y, i % 2 === 0 ? '#9B51E0' : '#FFD700', 3, {
+                                shapes: ['star', 'circle'],
+                                sizeMin: 3,
+                                sizeMax: 6,
+                                baseSpeed: 2,
+                                speedVariation: 3
+                            });
+                        }, i * 20);
+                    }
+
+                    // Create mysterious glowing orb
+                    const monster = document.createElement('div');
+                    monster.innerHTML = '🃏✨';
+                    monster.style.cssText = `
+                        position: absolute;
+                        left: 50%;
+                        top: 20%;
+                        font-size: 80px;
+                        transform: translateX(-50%);
+                        z-index: 280;
+                        animation: monsterPulse 3s ease infinite;
+                        filter: drop-shadow(0 0 20px #9B51E0);
+                    `;
+                    document.getElementById('game-container').appendChild(monster);
+
+                    if (!document.getElementById('monster-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'monster-style';
+                        style.textContent = `
+                            @keyframes monsterPulse {
+                                0%, 100% { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 0.8; filter: drop-shadow(0 0 20px #9B51E0); }
+                                50% { transform: translateX(-50%) scale(1.3) rotate(180deg); opacity: 1; filter: drop-shadow(0 0 40px #FFD700); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    triggerScreenShake(10);
+                    setTimeout(() => monster.remove(), 3000);
+                }
+            },
+            {
+                name: "Lane Johnson Tweet",
+                execute: () => {
+                    // Notification ping visual
+                    const notification = document.createElement('div');
+                    notification.textContent = '🔔';
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 15%;
+                        right: 30px;
+                        font-size: 40px;
+                        z-index: 301;
+                        animation: notificationPing 0.5s ease-out;
+                    `;
+                    document.body.appendChild(notification);
+
+                    if (!document.getElementById('notification-ping-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'notification-ping-style';
+                        style.textContent = `
+                            @keyframes notificationPing {
+                                0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+                                50% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+                                100% { transform: scale(1) rotate(0deg); opacity: 1; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    setTimeout(() => notification.remove(), 4000);
+
+                    const tweet = document.createElement('div');
+                    tweet.innerHTML = `
+                        <div style="background: white; padding: 15px; border-radius: 15px; max-width: 300px; box-shadow: 0 5px 20px rgba(0,0,0,0.3);">
+                            <div style="color: #1DA1F2; font-weight: bold; margin-bottom: 5px;">@LaneJohnson65 ✓</div>
+                            <div style="color: black; font-size: 0.9rem;">"The offense is too predictable."</div>
+                            <div style="color: #536471; font-size: 0.7rem; margin-top: 5px;">📱 Just now</div>
+                        </div>
+                    `;
+                    tweet.style.cssText = `
+                        position: fixed;
+                        top: 20%;
+                        right: -350px;
+                        z-index: 300;
+                        animation: tweetSlide 4s ease-out forwards;
+                        filter: drop-shadow(0 5px 15px rgba(29, 161, 242, 0.4));
+                    `;
+                    document.body.appendChild(tweet);
+
+                    if (!document.getElementById('tweet-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'tweet-style';
+                        style.textContent = `
+                            @keyframes tweetSlide {
+                                0% { right: -350px; transform: translateX(0); }
+                                5% { right: 20px; transform: translateX(0); }
+                                10% { right: 20px; transform: translateX(-5px); }
+                                15% { right: 20px; transform: translateX(5px); }
+                                20% { right: 20px; transform: translateX(0); }
+                                80% { right: 20px; }
+                                100% { right: -350px; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    triggerScreenShake(3);
+                    setTimeout(() => tweet.remove(), 4000);
+                }
+            },
+            {
+                name: "Duce Staley Return",
+                execute: () => {
+                    showQuote("Remember when we could run the ball?", kevin.head.position);
+                    const duce = document.createElement('div');
+                    duce.textContent = '🏃‍♂️💨 DUCE';
+                    duce.style.cssText = `
+                        position: fixed;
+                        font-family: 'Bebas Neue', sans-serif;
+                        font-size: 3rem;
+                        color: #004C54;
+                        text-shadow: 2px 2px 0 white, 0 0 10px rgba(0,76,84,0.5);
+                        left: -200px;
+                        bottom: 30%;
+                        z-index: 290;
+                        animation: duceRun 4s linear forwards;
+                    `;
+                    document.body.appendChild(duce);
+
+                    // Create dust trail that follows Duce
+                    const dustInterval = setInterval(() => {
+                        const duceRect = duce.getBoundingClientRect();
+                        if (duceRect.left > window.innerWidth + 200) {
+                            clearInterval(dustInterval);
+                            return;
+                        }
+
+                        const dust = document.createElement('div');
+                        dust.textContent = '💨';
+                        dust.style.cssText = `
+                            position: fixed;
+                            left: ${duceRect.left}px;
+                            bottom: 30%;
+                            font-size: 2rem;
+                            z-index: 289;
+                            animation: dustFade 0.8s ease-out forwards;
+                            opacity: 0.7;
+                        `;
+                        document.body.appendChild(dust);
+                        setTimeout(() => dust.remove(), 800);
+                    }, 150);
+
+                    if (!document.getElementById('duce-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'duce-style';
+                        style.textContent = `
+                            @keyframes duceRun {
+                                from { left: -200px; }
+                                to { left: calc(100% + 200px); }
+                            }
+                            @keyframes dustFade {
+                                0% { opacity: 0.7; transform: scale(1); }
+                                100% { opacity: 0; transform: scale(1.5); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    setTimeout(() => {
+                        clearInterval(dustInterval);
+                        duce.remove();
+                    }, 4000);
+                }
+            },
+            {
+                name: "Hurts Scramble",
+                execute: () => {
+                    showQuote("Jalen just scrambled for 15 yards...", kevin.head.position);
+                    const hurts = document.createElement('div');
+                    hurts.innerHTML = '🏈🏃‍♂️💨';
+                    hurts.style.cssText = `
+                        position: absolute;
+                        left: -50px;
+                        bottom: 150px;
+                        font-size: 60px;
+                        z-index: 280;
+                        animation: hurtsRun 3s linear forwards;
+                        filter: drop-shadow(0 0 10px rgba(0,76,84,0.6));
+                    `;
+                    document.getElementById('game-container').appendChild(hurts);
+
+                    // Defenders chasing behind (slower)
+                    for (let i = 0; i < 3; i++) {
+                        const defender = document.createElement('div');
+                        defender.textContent = '🏃‍♂️';
+                        defender.style.cssText = `
+                            position: absolute;
+                            left: ${-150 - i * 80}px;
+                            bottom: 150px;
+                            font-size: 50px;
+                            z-index: 279;
+                            animation: defenderChase${i} 3.5s linear forwards;
+                            opacity: 0.8;
+                        `;
+                        document.getElementById('game-container').appendChild(defender);
+
+                        const defenderStyle = document.createElement('style');
+                        defenderStyle.textContent = `
+                            @keyframes defenderChase${i} {
+                                from { left: ${-150 - i * 80}px; }
+                                to { left: calc(100% + 50px); }
+                            }
+                        `;
+                        document.head.appendChild(defenderStyle);
+
+                        setTimeout(() => defender.remove(), 3500);
+                    }
+
+                    // Particle trail
+                    const trailInterval = setInterval(() => {
+                        const hurtsRect = hurts.getBoundingClientRect();
+                        const containerRect = document.getElementById('game-container').getBoundingClientRect();
+                        if (hurtsRect.left > containerRect.right + 50) {
+                            clearInterval(trailInterval);
+                            return;
+                        }
+
+                        const canvasX = (hurtsRect.left - containerRect.left);
+                        const canvasY = containerRect.height - 150;
+                        createImpactParticles(canvasX, canvasY, '#004C54', 2, {
+                            shapes: ['circle'],
+                            sizeMin: 2,
+                            sizeMax: 4,
+                            baseSpeed: 1,
+                            speedVariation: 2
+                        });
+                    }, 100);
+
+                    if (!document.getElementById('hurts-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'hurts-style';
+                        style.textContent = `
+                            @keyframes hurtsRun {
+                                from { left: -50px; }
+                                to { left: calc(100% + 50px); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    setTimeout(() => {
+                        clearInterval(trailInterval);
+                        hurts.remove();
+                    }, 3000);
+                }
+            },
+            {
+                name: "Kelce Retirement",
+                execute: () => {
+                    showQuote("Jason Kelce considering retirement again...", kevin.head.position);
+
+                    // Kelce jersey falling
+                    const jersey = document.createElement('div');
+                    jersey.innerHTML = '👕<br><span style="font-size: 0.6em; color: #004C54;">62</span>';
+                    jersey.style.cssText = `
+                        position: fixed;
+                        top: -100px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        font-size: 80px;
+                        text-align: center;
+                        z-index: 310;
+                        animation: jerseyFall 3s ease-in forwards;
+                        filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+                    `;
+                    document.body.appendChild(jersey);
+
+                    if (!document.getElementById('kelce-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'kelce-style';
+                        style.textContent = `
+                            @keyframes jerseyFall {
+                                0% { top: -100px; transform: translateX(-50%) rotate(0deg); opacity: 1; }
+                                70% { top: 50%; transform: translateX(-50%) rotate(720deg); opacity: 1; }
+                                85% { top: 55%; transform: translateX(-50%) rotate(720deg); opacity: 1; }
+                                100% { top: 50%; transform: translateX(-50%) rotate(720deg) scale(0); opacity: 0; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    // Create sad particles
+                    setTimeout(() => {
+                        const centerX = render.canvas.width / 2;
+                        const centerY = render.canvas.height / 2;
+                        createImpactParticles(centerX, centerY, '#A5ACAF', 40, {
+                            shapes: ['circle', 'square'],
+                            sizeMin: 4,
+                            sizeMax: 10,
+                            baseSpeed: 5,
+                            speedVariation: 8
+                        });
+                    }, 2100);
+
+                    triggerScreenShake(5);
+                    setTimeout(() => jersey.remove(), 3000);
+                }
+            },
+            {
+                name: "Eagles Chant",
+                execute: () => {
+                    const chant = document.createElement('div');
+                    chant.textContent = "E-A-G-L-E-S EAGLES!";
+                    chant.style.cssText = `
+                        position: fixed;
+                        top: 40%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-family: 'Bebas Neue', sans-serif;
+                        font-size: clamp(2rem, 6vw, 4rem);
+                        color: #004C54;
+                        text-shadow: 3px 3px 0 white, 0 0 20px rgba(0,76,84,0.8);
+                        z-index: 300;
+                        pointer-events: none;
+                        animation: chantPulse 2s ease-out forwards;
+                    `;
+                    document.body.appendChild(chant);
+
+                    // Crowd cheering emojis
+                    for (let i = 0; i < 12; i++) {
+                        const crowd = document.createElement('div');
+                        crowd.textContent = ['🙌', '👏', '🎉', '🦅'][Math.floor(Math.random() * 4)];
+                        const side = Math.random() > 0.5 ? 1 : -1;
+                        crowd.style.cssText = `
+                            position: fixed;
+                            ${side > 0 ? 'left' : 'right'}: ${Math.random() * 30}%;
+                            bottom: ${Math.random() * 40}%;
+                            font-size: ${30 + Math.random() * 30}px;
+                            z-index: 299;
+                            animation: crowdCheer${i} 2s ease-out forwards;
+                        `;
+                        document.body.appendChild(crowd);
+
+                        const crowdStyle = document.createElement('style');
+                        crowdStyle.textContent = `
+                            @keyframes crowdCheer${i} {
+                                0% { opacity: 0; transform: translateY(50px) scale(0.5); }
+                                30% { opacity: 1; transform: translateY(0) scale(1.2); }
+                                60% { transform: scale(1); }
+                                100% { opacity: 0; transform: translateY(-30px) scale(0.8); }
+                            }
+                        `;
+                        document.head.appendChild(crowdStyle);
+
+                        setTimeout(() => crowd.remove(), 2000);
+                    }
+
+                    // Eagles particle burst
+                    setTimeout(() => {
+                        const centerX = render.canvas.width / 2;
+                        const centerY = render.canvas.height * 0.4;
+                        createImpactParticles(centerX, centerY, '#004C54', 30, {
+                            shapes: ['star'],
+                            sizeMin: 6,
+                            sizeMax: 12,
+                            baseSpeed: 8,
+                            speedVariation: 10
+                        });
+                    }, 300);
+
+                    if (!document.getElementById('chant-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'chant-style';
+                        style.textContent = `
+                            @keyframes chantPulse {
+                                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                                20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+                                80% { opacity: 1; }
+                                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    setTimeout(() => chant.remove(), 2000);
+                }
+            },
+            {
+                name: "Snowball Rain",
+                execute: () => {
+                    showQuote("Classic Philly snow storm!", kevin.head.position);
+
+                    // Snowflake effect
+                    for (let i = 0; i < 15; i++) {
+                        const snowflake = document.createElement('div');
+                        snowflake.textContent = '❄️';
+                        snowflake.style.cssText = `
+                            position: fixed;
+                            left: ${Math.random() * 100}%;
+                            top: -50px;
+                            font-size: ${20 + Math.random() * 30}px;
+                            z-index: 250;
+                            animation: snowfallDrift${i} ${3 + Math.random() * 2}s linear forwards;
+                            opacity: ${0.5 + Math.random() * 0.5};
+                        `;
+                        document.body.appendChild(snowflake);
+
+                        const snowStyle = document.createElement('style');
+                        snowStyle.textContent = `
+                            @keyframes snowfallDrift${i} {
+                                to {
+                                    top: 110%;
+                                    transform: translateX(${(Math.random() - 0.5) * 100}px) rotate(360deg);
+                                }
+                            }
+                        `;
+                        document.head.appendChild(snowStyle);
+
+                        setTimeout(() => snowflake.remove(), 5000);
+                    }
+
+                    for (let i = 0; i < 20; i++) {
+                        setTimeout(() => {
+                            const x = Math.random() * render.canvas.width;
+                            const snowball = Bodies.circle(x, -20, 12, {
+                                restitution: 0.6,
+                                friction: 0.3,
+                                label: 'projectile_snowball'
+                            });
+                            snowball.render.visible = false;
+                            World.add(world, snowball);
+                            projectiles.push({ body: snowball, type: 'snowball' });
+
+                            setupProjectileCollision(snowball, 'snowball');
+
+                            // Sparkle trail
+                            createImpactParticles(x, -20, '#FFFFFF', 5, {
+                                shapes: ['star', 'circle'],
+                                sizeMin: 2,
+                                sizeMax: 5,
+                                baseSpeed: 1,
+                                speedVariation: 2
+                            });
+
+                            setTimeout(() => {
+                                World.remove(world, snowball);
+                                projectiles = projectiles.filter(p => p.body !== snowball);
+                            }, 5000);
+                        }, i * 100);
+                    }
+                }
+            },
+            {
+                name: "Siriani Clap",
+                execute: () => {
+                    showQuote("*Nick Sirianni clapping intensifies*", kevin.head.position);
+                    const clap = document.createElement('div');
+                    clap.innerHTML = '👏👏👏';
+                    clap.style.cssText = `
+                        position: fixed;
+                        bottom: 200px;
+                        left: 50px;
+                        font-size: 80px;
+                        z-index: 290;
+                        animation: clapBounce 1s ease infinite;
+                    `;
+                    document.getElementById('game-container').appendChild(clap);
+
+                    // Random claps appearing all over
+                    const clapInterval = setInterval(() => {
+                        const randomClap = document.createElement('div');
+                        randomClap.textContent = '👏';
+                        randomClap.style.cssText = `
+                            position: fixed;
+                            left: ${Math.random() * 80 + 10}%;
+                            top: ${Math.random() * 70 + 10}%;
+                            font-size: ${40 + Math.random() * 40}px;
+                            z-index: 289;
+                            animation: clapPop 0.6s ease-out forwards;
+                        `;
+                        document.body.appendChild(randomClap);
+                        setTimeout(() => randomClap.remove(), 600);
+                    }, 200);
+
+                    if (!document.getElementById('clap-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'clap-style';
+                        style.textContent = `
+                            @keyframes clapBounce {
+                                0%, 100% { transform: scale(1); }
+                                50% { transform: scale(1.2); }
+                            }
+                            @keyframes clapPop {
+                                0% { opacity: 0; transform: scale(0) rotate(0deg); }
+                                50% { opacity: 1; transform: scale(1.3) rotate(180deg); }
+                                100% { opacity: 0; transform: scale(0.5) rotate(360deg); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    setTimeout(() => {
+                        clearInterval(clapInterval);
+                        clap.remove();
+                    }, 3000);
+                }
+            },
+            {
+                name: "Andy Reid BBQ",
+                execute: () => {
+                    showQuote("Meanwhile in Kansas City...", kevin.head.position);
+                    const andy = document.createElement('div');
+                    andy.innerHTML = '🍖🏆 ANDY';
+                    andy.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-family: 'Bebas Neue', sans-serif;
+                        font-size: 3rem;
+                        color: #E31837;
+                        text-shadow: 2px 2px 0 #FFB612, 0 0 20px rgba(227, 24, 55, 0.8);
+                        z-index: 300;
+                        animation: andyFade 3s ease-out forwards;
+                    `;
+                    document.body.appendChild(andy);
+
+                    // BBQ smoke effects
+                    for (let i = 0; i < 10; i++) {
+                        setTimeout(() => {
+                            const smoke = document.createElement('div');
+                            smoke.textContent = '💨';
+                            smoke.style.cssText = `
+                                position: fixed;
+                                left: ${45 + Math.random() * 10}%;
+                                top: 55%;
+                                font-size: ${30 + Math.random() * 20}px;
+                                z-index: 299;
+                                animation: smokeRise${i} ${2 + Math.random()}s ease-out forwards;
+                                opacity: 0.6;
+                            `;
+                            document.body.appendChild(smoke);
+
+                            const smokeStyle = document.createElement('style');
+                            smokeStyle.textContent = `
+                                @keyframes smokeRise${i} {
+                                    to {
+                                        top: 20%;
+                                        transform: translateX(${(Math.random() - 0.5) * 50}px) scale(1.5);
+                                        opacity: 0;
+                                    }
+                                }
+                            `;
+                            document.head.appendChild(smokeStyle);
+
+                            setTimeout(() => smoke.remove(), 3000);
+                        }, i * 150);
+                    }
+
+                    // Chiefs colors particle burst
+                    setTimeout(() => {
+                        const centerX = render.canvas.width / 2;
+                        const centerY = render.canvas.height / 2;
+                        createImpactParticles(centerX, centerY, '#E31837', 20, {
+                            shapes: ['star', 'circle'],
+                            sizeMin: 4,
+                            sizeMax: 10,
+                            baseSpeed: 6,
+                            speedVariation: 8
+                        });
+                        createImpactParticles(centerX, centerY, '#FFB612', 20, {
+                            shapes: ['star', 'circle'],
+                            sizeMin: 4,
+                            sizeMax: 10,
+                            baseSpeed: 6,
+                            speedVariation: 8
+                        });
+                    }, 600);
+
+                    if (!document.getElementById('andy-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'andy-style';
+                        style.textContent = `
+                            @keyframes andyFade {
+                                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                                20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                                80% { opacity: 1; }
+                                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    setTimeout(() => andy.remove(), 3000);
+                }
+            },
+            {
+                name: "Dawkins Spirit",
+                execute: () => {
+                    showQuote("The spirit of Weapon X watches...", kevin.head.position);
+                    const dawkins = document.createElement('div');
+                    dawkins.innerHTML = '🦅👻 #20';
+                    dawkins.style.cssText = `
+                        position: fixed;
+                        top: 10%;
+                        right: 10%;
+                        font-size: 4rem;
+                        opacity: 0.7;
+                        z-index: 280;
+                        animation: dawkinsFloat 4s ease-in-out forwards;
+                        filter: drop-shadow(0 0 30px rgba(0,76,84,0.9));
+                    `;
+                    document.body.appendChild(dawkins);
+
+                    // Spirit aura particles
+                    const particleInterval = setInterval(() => {
+                        const dawkinsRect = dawkins.getBoundingClientRect();
+                        if (parseFloat(window.getComputedStyle(dawkins).opacity) < 0.1) {
+                            clearInterval(particleInterval);
+                            return;
+                        }
+
+                        const containerRect = document.getElementById('game-container').getBoundingClientRect();
+                        const centerX = (dawkinsRect.left + dawkinsRect.width / 2 - containerRect.left);
+                        const centerY = (dawkinsRect.top + dawkinsRect.height / 2 - containerRect.top);
+
+                        createImpactParticles(centerX, centerY, '#004C54', 3, {
+                            shapes: ['star'],
+                            sizeMin: 3,
+                            sizeMax: 7,
+                            baseSpeed: 2,
+                            speedVariation: 3,
+                            glow: true
+                        });
+                    }, 200);
+
+                    // Lightning flash effect
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            const flash = document.createElement('div');
+                            flash.textContent = '⚡';
+                            flash.style.cssText = `
+                                position: fixed;
+                                top: ${10 + Math.random() * 20}%;
+                                right: ${5 + Math.random() * 15}%;
+                                font-size: ${40 + Math.random() * 30}px;
+                                z-index: 279;
+                                animation: lightningFlash 0.3s ease-out forwards;
+                            `;
+                            document.body.appendChild(flash);
+                            setTimeout(() => flash.remove(), 300);
+                        }, i * 400);
+                    }
+
+                    if (!document.getElementById('dawkins-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'dawkins-style';
+                        style.textContent = `
+                            @keyframes dawkinsFloat {
+                                0% { opacity: 0; transform: translateY(0); filter: drop-shadow(0 0 30px rgba(0,76,84,0.9)); }
+                                20% { opacity: 0.7; filter: drop-shadow(0 0 40px rgba(0,76,84,1)); }
+                                80% { opacity: 0.7; }
+                                100% { opacity: 0; transform: translateY(-100px); filter: drop-shadow(0 0 20px rgba(0,76,84,0.5)); }
+                            }
+                            @keyframes lightningFlash {
+                                0%, 100% { opacity: 0; transform: scale(0.5); }
+                                50% { opacity: 1; transform: scale(1.3); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    setTimeout(() => {
+                        clearInterval(particleInterval);
+                        dawkins.remove();
+                    }, 4000);
+                }
+            },
+            {
+                name: "Screen Pass Spam",
+                execute: () => {
+                    showQuote("Another screen pass? Really?", kevin.head.position);
+
+                    // Static noise overlay
+                    const staticOverlay = document.createElement('div');
+                    staticOverlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: repeating-linear-gradient(
+                            0deg,
+                            rgba(0,0,0,0.1) 0px,
+                            transparent 2px,
+                            rgba(255,255,255,0.05) 4px
+                        );
+                        z-index: 269;
+                        pointer-events: none;
+                        animation: staticScroll 0.1s linear infinite;
+                        opacity: 0.3;
+                    `;
+                    document.body.appendChild(staticOverlay);
+
+                    if (!document.getElementById('static-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'static-style';
+                        style.textContent = `
+                            @keyframes staticScroll {
+                                to { background-position: 0 10px; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    setTimeout(() => staticOverlay.remove(), 3000);
+
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            const screen = document.createElement('div');
+                            screen.textContent = '📺';
+                            screen.style.cssText = `
+                                position: absolute;
+                                left: ${Math.random() * 80 + 10}%;
+                                top: ${Math.random() * 60 + 10}%;
+                                font-size: 50px;
+                                animation: screenPop 1.5s ease-out forwards;
+                                z-index: 270;
+                                filter: drop-shadow(0 0 10px #00BFFF);
+                            `;
+                            document.getElementById('game-container').appendChild(screen);
+
+                            // Blue screen glitch particles
+                            const containerRect = document.getElementById('game-container').getBoundingClientRect();
+                            const screenX = (parseFloat(screen.style.left) / 100) * containerRect.width;
+                            const screenY = (parseFloat(screen.style.top) / 100) * containerRect.height;
+                            createImpactParticles(screenX, screenY, '#00BFFF', 8, {
+                                shapes: ['square'],
+                                sizeMin: 3,
+                                sizeMax: 8,
+                                baseSpeed: 3,
+                                speedVariation: 5
+                            });
+
+                            if (!document.getElementById('screen-pop-style')) {
+                                const style = document.createElement('style');
+                                style.id = 'screen-pop-style';
+                                style.textContent = `
+                                    @keyframes screenPop {
+                                        0% { opacity: 0; transform: scale(0) rotate(0deg); }
+                                        20% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+                                        80% { opacity: 1; transform: scale(1) rotate(360deg); }
+                                        100% { opacity: 0; transform: scale(0.5) rotate(540deg); }
+                                    }
+                                `;
+                                document.head.appendChild(style);
+                            }
+
+                            setTimeout(() => screen.remove(), 1500);
+                        }, i * 200);
+                    }
+                }
+            },
+            {
+                name: "Super Bowl Memory",
+                execute: () => {
+                    showQuote("Remember 2017?", kevin.head.position);
+
+                    // Underdog masks falling from sky
+                    for (let i = 0; i < 8; i++) {
+                        setTimeout(() => {
+                            const mask = document.createElement('div');
+                            mask.textContent = '🐶';
+                            mask.style.cssText = `
+                                position: fixed;
+                                left: ${Math.random() * 90 + 5}%;
+                                top: -50px;
+                                font-size: ${40 + Math.random() * 30}px;
+                                z-index: 349;
+                                animation: maskFall${i} ${2 + Math.random()}s ease-in forwards;
+                            `;
+                            document.body.appendChild(mask);
+
+                            const maskStyle = document.createElement('style');
+                            maskStyle.textContent = `
+                                @keyframes maskFall${i} {
+                                    to {
+                                        top: 110%;
+                                        transform: rotate(${Math.random() * 720 - 360}deg);
+                                    }
+                                }
+                            `;
+                            document.head.appendChild(maskStyle);
+
+                            setTimeout(() => mask.remove(), 3000);
+                        }, i * 100);
+                    }
+
+                    const sb = document.createElement('div');
+                    sb.innerHTML = '🏆 LII';
+                    sb.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-family: 'Bebas Neue', sans-serif;
+                        font-size: 5rem;
+                        color: #FFD700;
+                        text-shadow: 3px 3px 0 #004C54, -2px -2px 0 #004C54, 0 0 30px rgba(255,215,0,0.8);
+                        z-index: 350;
+                        animation: sbGlow 3s ease-out forwards;
+                    `;
+                    document.body.appendChild(sb);
+
+                    // Trophy sparkles
+                    for (let i = 0; i < 20; i++) {
+                        setTimeout(() => {
+                            const sparkle = document.createElement('div');
+                            sparkle.textContent = '✨';
+                            sparkle.style.cssText = `
+                                position: fixed;
+                                left: calc(50% + ${(Math.random() - 0.5) * 200}px);
+                                top: calc(50% + ${(Math.random() - 0.5) * 150}px);
+                                font-size: ${20 + Math.random() * 20}px;
+                                z-index: 351;
+                                animation: sparkleTwinkle 0.8s ease-out forwards;
+                            `;
+                            document.body.appendChild(sparkle);
+                            setTimeout(() => sparkle.remove(), 800);
+                        }, i * 100);
+                    }
+
+                    if (!document.getElementById('sb-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'sb-style';
+                        style.textContent = `
+                            @keyframes sbGlow {
+                                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(-30deg); }
+                                20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(10deg); }
+                                40% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+                                80% { opacity: 1; }
+                                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                            }
+                            @keyframes sparkleTwinkle {
+                                0% { opacity: 0; transform: scale(0) rotate(0deg); }
+                                50% { opacity: 1; transform: scale(1.5) rotate(180deg); }
+                                100% { opacity: 0; transform: scale(0.5) rotate(360deg); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    // Enhanced confetti bursts
+                    spawnConfetti('#004C54', 50);
+                    spawnConfetti('#A5ACAF', 50);
+                    setTimeout(() => spawnConfetti('#FFD700', 40), 500);
+
+                    // Gold particle burst
+                    setTimeout(() => {
+                        const centerX = render.canvas.width / 2;
+                        const centerY = render.canvas.height / 2;
+                        createImpactParticles(centerX, centerY, '#FFD700', 60, {
+                            shapes: ['star'],
+                            sizeMin: 6,
+                            sizeMax: 14,
+                            baseSpeed: 10,
+                            speedVariation: 12
+                        });
+                    }, 600);
+
+                    triggerScreenShake(8);
+                    setTimeout(() => sb.remove(), 3000);
+                }
+            }
+        ];
+
+        function triggerRandomEvent() {
+            const event = RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)];
+            event.execute();
+        }
+
+        // ==================== SPECIAL EVENTS ====================
+        function triggerLurieIntervention() {
+            // Lurie only saves you ONCE
+            if (!gameState.lurieUsed) {
+                // First time - Lurie saves Kevin
+                gameState.lurieUsed = true;
+
+                // Show Lurie overlay
+                document.getElementById('lurie-overlay').classList.add('show');
+
+                setTimeout(() => {
+                    document.getElementById('lurie-overlay').classList.remove('show');
+                    // Refill job security
+                    gameState.jobSecurity = 100;
+                    updateJobSecurityDisplay();
+                    kevin.currentExpression = 'surprised';
+
+                    // Show warning quote
+                    showQuote("That's your ONE mulligan, Kevin.", kevin.head.position);
+                }, 3000);
+            } else {
+                // Second time - GAME OVER
+                triggerGameOver();
+            }
+        }
+        
+        function triggerVerticalExplosion() {
+            // X's and O's explosion
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const xo = document.createElement('div');
+                    xo.textContent = Math.random() > 0.5 ? 'X' : 'O';
+                    xo.style.cssText = `
+                        position: absolute;
+                        left: ${Math.random() * 100}%;
+                        top: ${Math.random() * 100}%;
+                        font-size: ${20 + Math.random() * 40}px;
+                        color: white;
+                        font-family: 'Press Start 2P', monospace;
+                        pointer-events: none;
+                        animation: xoFly 2s ease-out forwards;
+                        z-index: 300;
+                    `;
+                    document.getElementById('game-container').appendChild(xo);
+                    
+                    setTimeout(() => xo.remove(), 2000);
+                }, i * 50);
+            }
+            
+            // Add animation
+            if (!document.getElementById('xo-style')) {
+                const style = document.createElement('style');
+                style.id = 'xo-style';
+                style.textContent = `
+                    @keyframes xoFly {
+                        from { transform: scale(0) rotate(0deg); opacity: 1; }
+                        to { transform: scale(2) rotate(360deg) translateY(-200px); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            showQuote("That's a lot of verticals!", kevin.head.position);
+        }
+        
+        function triggerJalenCameo() {
+            const jalen = document.createElement('div');
+            jalen.innerHTML = '😐';
+            jalen.style.cssText = `
+                position: absolute;
+                bottom: 100px;
+                right: 20px;
+                font-size: 80px;
+                z-index: 300;
+                animation: jalenStare 3s ease-out forwards;
+            `;
+            document.getElementById('game-container').appendChild(jalen);
+            
+            if (!document.getElementById('jalen-style')) {
+                const style = document.createElement('style');
+                style.id = 'jalen-style';
+                style.textContent = `
+                    @keyframes jalenStare {
+                        0% { opacity: 0; transform: scale(0); }
+                        20% { opacity: 1; transform: scale(1); }
+                        80% { opacity: 1; transform: scale(1); }
+                        100% { opacity: 0; transform: scale(0); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            setTimeout(() => jalen.remove(), 3000);
+        }
+        
+        // ==================== UI UPDATES ====================
+        function showQuote(text, pos) {
+            const bubble = document.getElementById('quote-bubble');
+            bubble.textContent = text;
+            
+            // Position near Kevin's head but on screen
+            const x = Math.min(Math.max(pos.x, 150), render.canvas.width - 150);
+            const y = Math.max(pos.y - 100, 80);
+            
+            bubble.style.left = x + 'px';
+            bubble.style.top = y + 'px';
+            bubble.classList.add('show');
+            
+            setTimeout(() => {
+                bubble.classList.remove('show');
+            }, 2500);
+        }
+        
+        function idleQuote() {
+            if (Date.now() - gameState.lastHitTime > 5000 && Math.random() > 0.5) {
+                const quote = QUOTES.onIdle[Math.floor(Math.random() * QUOTES.onIdle.length)];
+                showQuote(quote, kevin.head.position);
+            }
+        }
+        
+        function updateScoreDisplay() {
+            document.getElementById('score-value').textContent = gameState.score;
+        }
+        
+        function updateJobSecurityDisplay() {
+            const bar = document.getElementById('job-security-bar');
+            const percent = document.getElementById('job-security-percent');
+            
+            bar.style.width = gameState.jobSecurity + '%';
+            percent.textContent = Math.round(gameState.jobSecurity) + '%';
+            
+            // Color based on level
+            if (gameState.jobSecurity < 30) {
+                bar.style.background = 'linear-gradient(90deg, #ff0000, #ff3333)';
+            } else if (gameState.jobSecurity < 60) {
+                bar.style.background = 'linear-gradient(90deg, #ff6600, #ff9933)';
+            } else {
+                bar.style.background = 'linear-gradient(90deg, #00cc00, #33ff33)';
+            }
+        }
+        
+        function checkUnlocks() {
+            const buttons = document.querySelectorAll('.weapon-btn.locked');
+            buttons.forEach(btn => {
+                const unlockCost = parseInt(btn.dataset.unlock);
+                if (gameState.score >= unlockCost) {
+                    // Unlock animation
+                    btn.classList.add('unlocking');
+                    btn.classList.remove('locked');
+                    btn.querySelector('.unlock-cost')?.remove();
+
+                    // Get button position for particle effect
+                    const rect = btn.getBoundingClientRect();
+                    const canvasRect = render.canvas.getBoundingClientRect();
+                    const btnCenterX = (rect.left + rect.width / 2 - canvasRect.left) * (render.canvas.width / canvasRect.width);
+                    const btnCenterY = (rect.top + rect.height / 2 - canvasRect.top) * (render.canvas.height / canvasRect.height);
+
+                    // Particle burst from button
+                    createImpactParticles(btnCenterX, btnCenterY, '#FFD700', 30, {
+                        shapes: ['star', 'circle'],
+                        sizeMin: 4,
+                        sizeMax: 10,
+                        baseSpeed: 4,
+                        speedVariation: 6
+                    });
+
+                    // Unlock sound/flash
+                    const unlockFlash = document.createElement('div');
+                    unlockFlash.textContent = '🔓';
+                    unlockFlash.style.cssText = `
+                        position: absolute;
+                        left: ${rect.left + rect.width / 2}px;
+                        top: ${rect.top + rect.height / 2}px;
+                        font-size: 60px;
+                        transform: translate(-50%, -50%);
+                        z-index: 500;
+                        pointer-events: none;
+                        animation: unlockFlash 0.8s ease-out forwards;
+                    `;
+                    document.body.appendChild(unlockFlash);
+
+                    if (!document.getElementById('unlock-flash-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'unlock-flash-style';
+                        style.textContent = `
+                            @keyframes unlockFlash {
+                                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(0deg); }
+                                30% { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(180deg); }
+                                100% { opacity: 0; transform: translate(-50%, -150%) scale(0.3) rotate(360deg); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    setTimeout(() => unlockFlash.remove(), 800);
+                    setTimeout(() => btn.classList.remove('unlocking'), 1000);
+
+                    // Show unlock notification
+                    showQuote(`🎉 NEW WEAPON UNLOCKED! 🎉`, kevin.head.position);
+                    triggerScreenShake(8);
+                    playSuccessSound();
+                }
+            });
+        }
+        
+        // ==================== WEAPON SELECTION ====================
+        function setupWeaponButtons() {
+            const buttons = document.querySelectorAll('.weapon-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    if (btn.classList.contains('locked')) return;
+                    
+                    buttons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    gameState.selectedWeapon = btn.dataset.weapon;
+                });
+            });
+        }
+        
+        // ==================== NEWS TICKER ====================
+        function setupTicker() {
+            const ticker = document.getElementById('ticker-content');
+            
+            // Duplicate headlines for seamless loop
+            const allHeadlines = [...TICKER_HEADLINES, ...TICKER_HEADLINES];
+            
+            ticker.innerHTML = allHeadlines.map((h, i) => 
+                `<span class="ticker-item ${h.includes('BREAKING') ? 'ticker-breaking' : ''}">${h}</span>`
+            ).join('');
+        }
+        
+        // ==================== SEPIA TOGGLE ====================
+        function toggleSepia() {
+            gameState.isSepia = !gameState.isSepia;
+            document.body.classList.toggle('sepia-active', gameState.isSepia);
+
+            if (gameState.isSepia) {
+                showQuote("The good old days...", kevin.head.position);
+            }
+        }
+
+        // ==================== CREDITS POPUP ====================
+        function showCreditsPopup() {
+            const popup = document.getElementById('credits-popup');
+            if (popup) {
+                popup.style.display = 'flex';
+            }
+        }
+
+        function closeCreditsPopup() {
+            const popup = document.getElementById('credits-popup');
+            if (popup) {
+                popup.style.display = 'none';
+            }
+        }
+        
+        // ==================== GAME OVER ====================
+        function triggerGameOver() {
+            document.getElementById('game-over-overlay').classList.add('show');
+        }
+        
+        function restartGame() {
+            document.getElementById('game-over-overlay').classList.remove('show');
+            gameState.score = 0;
+            gameState.jobSecurity = 100;
+            gameState.fourVerticals = 847;
+            gameState.verticalExplosion = false;
+            gameState.lurieUsed = false;  // Reset Lurie save for new game
+            
+            updateScoreDisplay();
+            updateJobSecurityDisplay();
+            document.getElementById('four-verticals').textContent = `4 Verticals: ${gameState.fourVerticals}`;
+            
+            // Reset Kevin position
+            const w = render.canvas.width;
+            const h = render.canvas.height;
+            Body.setPosition(kevin.head, { x: w/2, y: h/2 - 100 });
+            Body.setPosition(kevin.torso, { x: w/2, y: h/2 - 20 });
+            Body.setVelocity(kevin.head, { x: 0, y: 0 });
+            Body.setVelocity(kevin.torso, { x: 0, y: 0 });
+
+            kevin.currentExpression = 'surprised';
+            
+            // Re-lock weapons
+            document.querySelectorAll('.weapon-btn').forEach(btn => {
+                const unlock = btn.dataset.unlock;
+                if (unlock) {
+                    btn.classList.add('locked');
+                    if (!btn.querySelector('.unlock-cost')) {
+                        const cost = document.createElement('span');
+                        cost.className = 'unlock-cost';
+                        cost.textContent = unlock;
+                        btn.appendChild(cost);
+                    }
+                }
+            });
+        }
+        
+        // ==================== WINDOW RESIZE ====================
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            if (render) {
+                const container = document.getElementById('game-container');
+                render.canvas.width = container.clientWidth;
+                render.canvas.height = container.clientHeight;
+                render.options.width = container.clientWidth;
+                render.options.height = container.clientHeight;
+
+                // Debounce wall recreation to avoid performance issues
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    // Remove old walls
+                    const allBodies = Composite.allBodies(world);
+                    const wallsToRemove = allBodies.filter(body =>
+                        body.isStatic && body.label !== 'kevinHead' && body.label !== 'kevinTorso'
+                    );
+                    World.remove(world, wallsToRemove);
+
+                    // Recreate walls with new dimensions
+                    createWalls();
+                }, 250);
+            }
+        });
+        
+        // ==================== START ====================
+        document.addEventListener('DOMContentLoaded', runLoadingScreen);
+    </script>
+</body>
+</html>
