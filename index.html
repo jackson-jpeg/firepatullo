@@ -583,6 +583,16 @@
     </style>
 </head>
 <body>
+    <!-- EMERGENCY ZOOM FIX BUTTON -->
+    <div id="zoom-fix-btn" onclick="forceResetZoom()"
+         style="display: none; position: fixed; bottom: 10px; right: 10px;
+                background: rgba(0, 0, 0, 0.3); color: rgba(255, 255, 255, 0.5);
+                border: 1px solid rgba(255, 255, 255, 0.2); padding: 4px 8px;
+                border-radius: 4px; font-family: 'Oswald', sans-serif; font-size: 10px;
+                z-index: 99999; cursor: pointer; white-space: nowrap; opacity: 0.6;">
+        Reset
+    </div>
+
     <!-- LOADING SCREEN -->
     <div id="loading-screen">
         <div class="loading-title">🦅 LOADING PLAYBOOK... 🦅</div>
@@ -4377,37 +4387,53 @@
             }
         });
         
-        // ==================== PREVENT ZOOM ====================
-        // Prevent double-tap zoom
+        // ==================== ZOOM PREVENTION SYSTEM ====================
+
+        // 1. Block "Pinch to Zoom" (iOS Specific - The Killer Fix)
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        // 2. Block Double-Tap Zoom (Aggressive)
         let lastTouchEnd = 0;
-        document.addEventListener('touchend', e => {
+        document.addEventListener('touchend', function(e) {
             const now = Date.now();
             if (now - lastTouchEnd <= 300) {
                 e.preventDefault();
             }
             lastTouchEnd = now;
-        }, false);
+        }, { passive: false }); // Important: passive: false allows preventDefault
 
-        // Auto-reset zoom if user accidentally zooms in
-        // Uses visualViewport API to detect zoom and reset it
+        // 3. Monitor Zoom Level & Show Emergency Button
         if (window.visualViewport) {
-            let zoomResetTimeout;
-            window.visualViewport.addEventListener('resize', () => {
-                const zoomLevel = window.visualViewport.scale;
-                if (zoomLevel > 1.05) {
-                    // User zoomed in - reset after a brief delay
-                    clearTimeout(zoomResetTimeout);
-                    zoomResetTimeout = setTimeout(() => {
-                        // Reset zoom by updating viewport meta
-                        const viewport = document.querySelector('meta[name="viewport"]');
-                        const content = viewport.getAttribute('content');
-                        viewport.setAttribute('content', 'width=device-width, initial-scale=0.99');
-                        setTimeout(() => {
-                            viewport.setAttribute('content', content);
-                        }, 50);
-                    }, 300);
+            const zoomBtn = document.getElementById('zoom-fix-btn');
+
+            function checkZoom() {
+                // If zoomed in more than 10% OR scrolled away from origin
+                if (window.visualViewport.scale > 1.1 || window.visualViewport.offsetLeft > 10) {
+                    zoomBtn.style.display = 'block';
+                } else {
+                    zoomBtn.style.display = 'none';
                 }
-            });
+            }
+
+            window.visualViewport.addEventListener('resize', checkZoom);
+            window.visualViewport.addEventListener('scroll', checkZoom);
+        }
+
+        // 4. Force Reset Function (The Escape Hatch)
+        function forceResetZoom() {
+            const viewport = document.querySelector('meta[name="viewport"]');
+            const originalContent = viewport.getAttribute('content');
+
+            // Force browser to recalculate layout
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+
+            // Scroll back to top-left
+            window.scrollTo(0, 0);
+
+            // Hide button
+            document.getElementById('zoom-fix-btn').style.display = 'none';
         }
 
         // ==================== START ====================
