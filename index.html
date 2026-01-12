@@ -1170,10 +1170,7 @@
                 })
             ];
 
-            // Arsenal Container - DISABLED: physics body was blocking clicks
-            // The buttons are HTML elements on top of the canvas; we don't need a physics body
-            // If miscalculated, it creates an invisible shield blocking the game
-            /*
+            // Arsenal Container - add physics body so projectiles bounce off UI (KEPT for polish)
             const arsenalDiv = document.getElementById('arsenal-container');
             if (arsenalDiv) {
                 const arsenalRect = arsenalDiv.getBoundingClientRect();
@@ -1194,7 +1191,6 @@
 
                 walls.push(arsenalBody);
             }
-            */
 
             World.add(world, walls);
         }
