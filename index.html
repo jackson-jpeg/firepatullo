@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FIRE KEVIN PATULLO</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,7 +31,7 @@
             min-height: 100vh;
             overflow: auto;
             user-select: none;
-            touch-action: manipulation; /* Allows pinch zoom and panning, removes double-tap zoom delay */
+            touch-action: pan-x pan-y; /* Allow scrolling but block pinch-zoom */
             /* Safe area insets for iPhone notch/dynamic island */
             padding-top: env(safe-area-inset-top);
             padding-right: env(safe-area-inset-right);
@@ -4377,65 +4377,108 @@
             }
         });
         
-        // ==================== ZOOM PREVENTION (ALLOW ZOOM OUT ONLY) ====================
+        // ==================== NUCLEAR ZOOM PREVENTION ====================
 
-        // Track the current viewport scale to know if user is zoomed in or out
-        let currentScale = 1;
-        if (window.visualViewport) {
-            currentScale = window.visualViewport.scale;
-            window.visualViewport.addEventListener('resize', () => {
-                currentScale = window.visualViewport.scale;
-            });
-        }
+        // BLOCK EVERYTHING THAT COULD CAUSE ZOOM
 
-        // 1. Super Aggressive Multi-Tap Prevention
-        // Track all taps within a 1 second window
+        // 1. Block ALL gesture events (pinch zoom)
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        }, { passive: false, capture: true });
+
+        document.addEventListener('gesturechange', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        }, { passive: false, capture: true });
+
+        document.addEventListener('gestureend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        }, { passive: false, capture: true });
+
+        // 2. Block ALL multi-touch (2+ fingers)
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            }
+        }, { passive: false, capture: true });
+
+        document.addEventListener('touchmove', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            }
+        }, { passive: false, capture: true });
+
+        // 3. AGGRESSIVE multi-tap prevention - block rapid taps
         const tapTimes = [];
+        let blockAllTaps = false;
+        let blockTimeout = null;
+
         document.addEventListener('touchend', function(e) {
             const now = Date.now();
 
-            // Remove taps older than 1 second
+            // If we're in block mode, block everything
+            if (blockAllTaps) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            }
+
+            // Clean old taps
             while (tapTimes.length > 0 && now - tapTimes[0] > 1000) {
                 tapTimes.shift();
             }
 
-            // Add current tap
             tapTimes.push(now);
 
-            // If more than 1 tap in last 500ms, OR more than 3 taps in last 1 second - BLOCK IT
-            const recentTaps = tapTimes.filter(time => now - time <= 500);
-            if (recentTaps.length > 1 || tapTimes.length > 3) {
+            // If more than 1 tap in 400ms - ENTER BLOCK MODE for 500ms
+            const recentTaps = tapTimes.filter(time => now - time <= 400);
+            if (recentTaps.length > 1) {
+                blockAllTaps = true;
+                clearTimeout(blockTimeout);
+                blockTimeout = setTimeout(() => {
+                    blockAllTaps = false;
+                    tapTimes.length = 0; // Clear all taps
+                }, 500);
+
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            }
+        }, { passive: false, capture: true });
+
+        // 4. Block wheel/trackpad zoom
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             }
         }, { passive: false, capture: true });
 
-        // 2. Block pinch zoom IN, allow pinch zoom OUT
-        let gestureStartScale = 1;
-
-        document.addEventListener('gesturestart', function(e) {
-            gestureStartScale = currentScale;
-        }, { passive: false });
-
-        document.addEventListener('gesturechange', function(e) {
-            // e.scale > 1 means fingers spreading apart (zoom in)
-            // e.scale < 1 means fingers coming together (zoom out)
-            // Only block zoom in (spreading)
-            if (e.scale > 1.0) {
+        // 5. Block keyboard zoom (Ctrl/Cmd + Plus/Minus)
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
                 e.preventDefault();
                 e.stopPropagation();
+                return false;
             }
-            // Let zoom out pass through (e.scale < 1.0)
-        }, { passive: false });
-
-        document.addEventListener('gestureend', function(e) {
-            // Block if ended with zoom in gesture
-            if (e.scale > 1.0) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, { passive: false });
+        }, { passive: false, capture: true });
 
         // ==================== START ====================
         document.addEventListener('DOMContentLoaded', runLoadingScreen);
