@@ -558,24 +558,20 @@
             }
             
             .highway-sign {
-                display: block !important; /* Force visibility on mobile */
-                visibility: visible !important; /* Extra insurance */
-                opacity: 1 !important; /* Extra insurance */
-                top: 110px !important; /* Push below Job Security meter */
-                left: 10px !important; /* Align with left edge */
-                padding: 6px 10px !important;
-                z-index: 200 !important; /* Higher z-index to ensure visibility */
-                box-shadow: 0 2px 8px rgba(0,0,0,0.8);
-                transform: none !important; /* Flatten for better mobile readability */
-                max-width: 160px;
+                display: block !important;
+                top: 130px !important; /* Safely below Job Security meter */
+                left: 10px !important;
                 background: #006B3C !important;
                 border: 2px solid white !important;
-                pointer-events: auto !important; /* Ensure clickable */
+                padding: 8px 12px !important;
+                z-index: 999 !important; /* On top of everything */
+                transform: none !important; /* Flat for readability */
+                box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+                max-width: 140px;
             }
 
             .highway-sign-text {
-                font-size: 0.55rem !important;
-                white-space: normal !important; /* Allow text wrapping if needed */
+                font-size: 0.6rem !important;
                 line-height: 1.2 !important;
                 color: white !important;
             }
@@ -604,6 +600,15 @@
     </style>
 </head>
 <body>
+    <!-- EMERGENCY ZOOM FIX BUTTON -->
+    <div id="zoom-fix-btn" onclick="forceResetZoom()"
+         style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+                background: #FF0000; color: white; border: 3px solid white; padding: 15px 30px;
+                border-radius: 50px; font-family: 'Bebas Neue', sans-serif; font-size: 24px;
+                z-index: 99999; box-shadow: 0 0 20px rgba(0,0,0,0.8); cursor: pointer; white-space: nowrap;">
+        🔧 FIX ZOOM / RESET SCREEN
+    </div>
+
     <!-- LOADING SCREEN -->
     <div id="loading-screen">
         <div class="loading-title">🦅 LOADING PLAYBOOK... 🦅</div>
@@ -2837,121 +2842,98 @@
         }
         
         function triggerGrease() {
-            // EPIC GREASED POLE SEQUENCE - The Ultimate Philadelphia Experience
-            gameState.greaseActive = true;
-
-            // Phase 1: The Setup - Show the pole majestically
-            const poleContainer = document.createElement('div');
-            poleContainer.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                z-index: 500;
-                pointer-events: none;
+            // OPERATION CRISCO - The Philadelphia Police Alert Version
+            // 1. THE SETUP: "Crisco Vision" (Green/Oily Filter)
+            const greaseOverlay = document.createElement('div');
+            greaseOverlay.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: radial-gradient(circle, transparent 40%, rgba(0, 76, 84, 0.8) 100%);
+                pointer-events: none; z-index: 100; mix-blend-mode: multiply;
+                animation: greasePulse 2s infinite;
             `;
-            document.body.appendChild(poleContainer);
+            document.body.appendChild(greaseOverlay);
 
-            // The Pole appears
-            const pole = document.createElement('div');
-            pole.innerHTML = `<img src="${ASSETS.lightPole}" style="width: 150px; height: auto;">`;
-            pole.style.cssText = `animation: poleSlam 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; filter: drop-shadow(0 10px 30px rgba(0,255,200,0.6));`;
-            poleContainer.appendChild(pole);
+            // 2. THE ALERT: Police Tape Style
+            const alertBanner = document.createElement('div');
+            alertBanner.innerHTML = '⚠️ CITYWIDE ALERT: DO NOT CLIMB ⚠️';
+            alertBanner.style.cssText = `
+                position: fixed; top: 20%; left: -100%; width: 200%; height: 60px;
+                background: #FFD700; color: black; font-family: 'Bebas Neue', sans-serif;
+                font-size: 40px; line-height: 60px; text-align: center;
+                transform: rotate(-5deg); z-index: 300;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+                animation: slideAlert 5s linear forwards;
+            `;
+            document.body.appendChild(alertBanner);
 
-            // Add epic animations
-            if (!document.getElementById('grease-epic-style')) {
+            // Add animations if missing
+            if (!document.getElementById('grease-alert-style')) {
                 const style = document.createElement('style');
-                style.id = 'grease-epic-style';
+                style.id = 'grease-alert-style';
                 style.textContent = `
-                    @keyframes poleSlam { 0% { transform: translateY(-1000px) scale(0.5) rotate(720deg); opacity: 0; } 70% { transform: translateY(20px) scale(1.1) rotate(0deg); opacity: 1; } 100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; } }
-                    @keyframes kevinClimb { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
-                    @keyframes kevinFall { 0% { transform: translateY(-30px) rotate(0deg); } 100% { transform: translateY(100px) rotate(360deg); opacity: 0; } }
-                    @keyframes crowdWave { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
-                    @keyframes shimmerGrease { 0%, 100% { opacity: 0.4; background-position: 0% 50%; } 50% { opacity: 0.7; background-position: 100% 50%; } }
-                    @keyframes achievementPop { 0% { transform: translateX(-50%) scale(0) rotate(-180deg); } 70% { transform: translateX(-50%) scale(1.1) rotate(5deg); } 100% { transform: translateX(-50%) scale(1) rotate(0deg); } }
+                    @keyframes greasePulse { 0% { opacity: 0.6; } 50% { opacity: 0.9; } 100% { opacity: 0.6; } }
+                    @keyframes slideAlert { from { left: -100%; } to { left: 100%; } }
                 `;
                 document.head.appendChild(style);
             }
 
-            // Phase 2: The Announcement (0.5s)
+            // 3. THE POLE: Uses the Asset
+            const poleVisual = document.createElement('img');
+            poleVisual.src = ASSETS.lightPole;
+            poleVisual.style.cssText = `
+                position: absolute; left: 50%; bottom: -600px;
+                height: 600px; width: auto; transform: translateX(-50%);
+                z-index: 5; filter: drop-shadow(0 0 10px rgba(0,255,0,0.5));
+                transition: bottom 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            `;
+            document.getElementById('game-container').appendChild(poleVisual);
+            setTimeout(() => poleVisual.style.bottom = '0px', 100);
+
+            // 4. THE PHYSICS: The "Climb & Slip"
+            gameState.greaseActive = true;
+
+            // Magnetize Kevin to the pole
+            const climbInterval = setInterval(() => {
+                if (!gameState.greaseActive) { clearInterval(climbInterval); return; }
+                const dx = (render.canvas.width / 2) - kevin.torso.position.x;
+                Body.applyForce(kevin.torso, kevin.torso.position, { x: dx * 0.0005, y: 0 });
+                // ZERO FRICTION
+                kevin.head.friction = 0; kevin.torso.friction = 0;
+                kevin.head.frictionAir = 0.001;
+            }, 16);
+
+            // Step B: False Hope (Climb Up)
             setTimeout(() => {
-                const announcement = document.createElement('div');
-                announcement.style.cssText = `position: fixed; top: 20%; left: 50%; transform: translateX(-50%); font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: #004C54; text-shadow: 3px 3px 0 #FFD700, 0 0 30px rgba(0,76,84,0.8); z-index: 501; animation: crowdWave 0.5s ease-in-out 3; pointer-events: none;`;
-                announcement.textContent = '🏈 GREASED POLE DEPLOYED! 🏈';
-                document.body.appendChild(announcement);
-                setTimeout(() => announcement.remove(), 2000);
-            }, 500);
+                showQuote("I CAN MAKE IT!", kevin.head.position);
+                Body.setVelocity(kevin.torso, { x: 0, y: -15 });
+            }, 1000);
 
-            // Phase 3: Kevin tries to climb (1.5s)
+            // Step C: The Reality Check (Slip Down)
             setTimeout(() => {
-                const kevinClimber = document.createElement('div');
-                kevinClimber.textContent = '🧍';
-                kevinClimber.style.cssText = `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; z-index: 499; animation: kevinClimb 0.6s ease-in-out 3; pointer-events: none;`;
-                document.body.appendChild(kevinClimber);
-                setTimeout(() => { kevinClimber.style.animation = 'kevinFall 0.8s ease-in forwards'; showQuote("NOOOO! I CAN'T GRIP IT!", kevin.head.position); }, 1800);
-                setTimeout(() => kevinClimber.remove(), 2800);
-            }, 1500);
+                showQuote("TOO GREASY!!!", kevin.head.position);
+                triggerScreenShake(15);
+                Body.setVelocity(kevin.torso, { x: 0, y: 25 }); // Slam down
+                Body.setAngularVelocity(kevin.torso, 0.5); // Spin
+                playTone(800, 0.5, 'sawtooth', 0.2); // Slip sound
+            }, 1800);
 
-            // Phase 4: The Crowd (2.5s)
+            // 5. CLEANUP - Hide the pole, remove overlay, restore physics (After 4 seconds)
             setTimeout(() => {
-                const crowd = document.createElement('div');
-                crowd.style.cssText = `position: fixed; bottom: 20%; left: 50%; transform: translateX(-50%); font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: #004C54; text-shadow: 2px 2px 0 white, 0 0 20px rgba(0,76,84,0.8); z-index: 501; animation: crowdWave 0.3s ease-in-out infinite; pointer-events: none; white-space: nowrap;`;
-                crowd.textContent = '📣 E-A-G-L-E-S EAGLES! 🦅';
-                document.body.appendChild(crowd);
-                setTimeout(() => crowd.remove(), 3000);
-            }, 2500);
+                poleVisual.style.bottom = '-600px'; // Pole descends
+                greaseOverlay.style.opacity = '0'; // Fade out filter
+                setTimeout(() => {
+                    poleVisual.remove();
+                    greaseOverlay.remove();
+                    alertBanner.remove();
+                }, 1000); // Clean up DOM after fade
 
-            // Phase 5: Gritty mocks (3.5s)
-            setTimeout(() => {
-                const gritty = document.createElement('div');
-                gritty.style.cssText = `position: fixed; right: 10%; top: 40%; font-size: 100px; z-index: 501; animation: crowdWave 0.4s ease-in-out 5; pointer-events: none; filter: drop-shadow(0 5px 15px rgba(255,100,0,0.6));`;
-                gritty.textContent = '🧡';
-                document.body.appendChild(gritty);
-                setTimeout(() => showQuote("Even Gritty is laughing...", kevin.head.position), 200);
-                setTimeout(() => gritty.remove(), 2500);
-            }, 3500);
+                gameState.greaseActive = false;
+                kevin.head.friction = CONFIG.FRICTION;
+                kevin.torso.friction = CONFIG.FRICTION;
+                kevin.head.frictionAir = 0.02; // Restore air resistance
 
-            // Phase 6: Slippery floor effect
-            const slipFloor = document.createElement('div');
-            slipFloor.style.cssText = `position: fixed; bottom: 0; left: 0; right: 0; height: 150px; background: linear-gradient(to top, rgba(0, 255, 200, 0.5), rgba(0, 255, 150, 0.3), transparent); pointer-events: none; z-index: 10; animation: shimmerGrease 2s ease-in-out infinite; background-size: 200% 200%;`;
-            document.getElementById('game-container').appendChild(slipFloor);
-
-            // Phase 7: ULTRA slippery physics
-            kevin.head.friction = 0.001; kevin.torso.friction = 0.001;
-            kevin.head.restitution = 0.9; kevin.torso.restitution = 0.9;
-
-            const interval = setInterval(() => {
-                if (!gameState.greaseActive) {
-                    clearInterval(interval);
-                    kevin.head.friction = CONFIG.FRICTION; kevin.torso.friction = CONFIG.FRICTION;
-                    kevin.head.restitution = CONFIG.BOUNCE; kevin.torso.restitution = CONFIG.BOUNCE;
-                    return;
-                }
-                const fx = (Math.random() - 0.5) * 0.3; const fy = (Math.random() - 0.5) * 0.15;
-                Body.applyForce(kevin.head, kevin.head.position, { x: fx, y: fy });
-                Body.applyForce(kevin.torso, kevin.torso.position, { x: fx * 0.5, y: fy * 0.5 });
-                if (Math.random() > 0.8) Body.setAngularVelocity(kevin.head, (Math.random() - 0.5) * 0.3);
-            }, 80);
-
-            // Phase 8: Funny quotes
-            const greaseQuotes = ["*slipping sounds*", "WHERE'S THE TRACTION?!", "This is how I feel calling plays!", "At least I'm good at something...", "HELP! I'VE FALLEN AND I CAN'T GET UP!", "🧴 TOO SLIPPERY! 🧴"];
-            let quoteIndex = 0;
-            const quoteInterval = setInterval(() => {
-                if (!gameState.greaseActive || quoteIndex >= greaseQuotes.length) { clearInterval(quoteInterval); return; }
-                showQuote(greaseQuotes[quoteIndex], kevin.head.position); quoteIndex++;
-            }, 1500);
-
-            // Phase 9: Achievement (6s)
-            setTimeout(() => {
-                const achievement = document.createElement('div');
-                achievement.style.cssText = `position: fixed; top: 30%; left: 50%; transform: translateX(-50%) scale(0); background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border: 4px solid #004C54; border-radius: 15px; padding: 20px 40px; font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: #004C54; text-shadow: 1px 1px 0 rgba(255,255,255,0.5); z-index: 502; box-shadow: 0 10px 40px rgba(0,0,0,0.5); pointer-events: none; animation: achievementPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;`;
-                achievement.innerHTML = `<div style="text-align: center;"><div style="font-size: 3rem; margin-bottom: 5px;">🏆</div><div>ACHIEVEMENT UNLOCKED</div><div style="font-size: 1.3rem; color: white; margin-top: 5px;">"Philadelphia Tradition"</div></div>`;
-                document.body.appendChild(achievement);
-                setTimeout(() => { achievement.style.transition = 'all 0.5s ease-out'; achievement.style.opacity = '0'; achievement.style.transform = 'translateX(-50%) scale(0.8)'; setTimeout(() => achievement.remove(), 500); }, 3000);
-            }, 6000);
-
-            // End after 10 seconds!
-            setTimeout(() => { gameState.greaseActive = false; slipFloor.remove(); poleContainer.remove(); }, 10000);
+                showQuote("My gameplan is slippery.", kevin.head.position);
+            }, 4000);
         }
 
         function equipErinAndrewsCoat() {
@@ -4423,23 +4405,83 @@
             }
         });
         
-        // ==================== SIMPLE ZOOM PREVENTION ====================
-        // Use native browser capabilities via CSS touch-action: manipulation
-        // Only block multi-touch pinch zoom and trackpad zoom
+        // ==================== ADVANCED ZOOM PROTECTION ====================
 
-        // 1. Block multi-touch pinch zoom (2+ fingers)
-        document.addEventListener('touchstart', function(e) {
-            if (e.touches.length > 1) {
-                e.preventDefault(); // Blocks pinch-zoom
+        // 1. Block "Pinch to Zoom" (iOS Specific - The Killer Fix)
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        // 2. Block Double-Tap Zoom (Aggressive)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
             }
+            lastTouchEnd = now;
         }, { passive: false });
 
-        // 2. Block trackpad pinch zoom (Chrome Mac)
-        document.addEventListener('wheel', function(e) {
-            if (e.ctrlKey) {
-                e.preventDefault(); // Blocks Ctrl+Wheel (pinch emulation)
+        // 3. Monitor Zoom Level & Show Emergency Button
+        if (window.visualViewport) {
+            const zoomBtn = document.getElementById('zoom-fix-btn');
+            function checkZoom() {
+                // If zoomed in more than 10% OR scrolled away from origin
+                if (window.visualViewport.scale > 1.1 || window.visualViewport.offsetLeft > 10) {
+                    zoomBtn.style.display = 'block';
+                } else {
+                    zoomBtn.style.display = 'none';
+                }
             }
-        }, { passive: false });
+            window.visualViewport.addEventListener('resize', checkZoom);
+            window.visualViewport.addEventListener('scroll', checkZoom);
+        }
+
+        // 4. Force Reset Function (The Escape Hatch)
+        function forceResetZoom() {
+            const viewport = document.querySelector('meta[name="viewport"]');
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+            window.scrollTo(0, 0);
+            document.getElementById('zoom-fix-btn').style.display = 'none';
+        }
+
+        // ==================== SNEAKY EASTER EGGS ====================
+
+        // 1. KONAMI CODE (Retro Mode)
+        const KONAMI_CODE = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+        let konamiCursor = 0;
+        document.addEventListener('keydown', (e) => {
+            if (e.key === KONAMI_CODE[konamiCursor]) {
+                konamiCursor++;
+                if (konamiCursor === KONAMI_CODE.length) {
+                    document.body.style.filter = 'contrast(1.2) saturate(1.2)';
+                    document.getElementById('game-canvas').style.imageRendering = 'pixelated';
+                    showQuote("TECMO KEVIN UNLOCKED!", kevin.head.position);
+                    konamiCursor = 0;
+                }
+            } else { konamiCursor = 0; }
+        });
+
+        // 2. TAB SWITCH GUILT TRIP
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                document.title = "Wait! We have a concept of a plan!";
+            } else {
+                document.title = "FIRE KEVIN PATULLO";
+                showQuote("I knew you'd come back.", kevin.head.position);
+            }
+        });
+
+        // 3. SALARY DUMP (Shake for Money)
+        setInterval(() => {
+            if (gameState.isDragging && kevin.torso) {
+                const velocity = Math.sqrt(kevin.torso.velocity.x**2 + kevin.torso.velocity.y**2);
+                if (velocity > 30 && Math.random() < 0.2) {
+                    createImpactParticles(kevin.torso.position.x, kevin.torso.position.y, '#85bb65', 1, { shapes: ['square'], sizeMin: 8, sizeMax: 12 });
+                    if (Math.random() < 0.1) showQuote("I'm still getting paid!", kevin.head.position);
+                }
+            }
+        }, 100);
 
         // ==================== START ====================
         document.addEventListener('DOMContentLoaded', runLoadingScreen);
