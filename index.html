@@ -2465,97 +2465,122 @@
         function triggerTushPush() {
             const w = render.canvas.width;
             const y = kevin.torso.position.y;
-            const crushSpeed = 15;
 
-            // 1. PHYSICAL WALLS (The O-Line)
+            // 1. PHYSICAL WALLS (O-Line vs D-Line)
             const leftWall = Bodies.rectangle(-100, y, 200, 300, {
                 isStatic: true,
-                label: 'push-wall-left'
+                label: 'push-wall-left',
+                render: { fillStyle: '#004C54' } // Eagles Green
             });
             const rightWall = Bodies.rectangle(w + 100, y, 200, 300, {
                 isStatic: true,
-                label: 'push-wall-right'
+                label: 'push-wall-right',
+                render: { fillStyle: '#333333' } // Defense
             });
             World.add(world, [leftWall, rightWall]);
 
-            // 2. VISUALS (The Scrum)
+            // 2. VISUAL SCRUM BLOCKS (no emojis)
             const leftScrum = document.createElement('div');
-            leftScrum.innerHTML = '🦅🤬😤🛡️'; // O-Line faces
             leftScrum.style.cssText = `
                 position: absolute; left: -200px; top: ${y - 100}px;
-                font-size: 80px; z-index: 290; transition: transform 0.1s;
+                width: 180px; height: 200px;
+                background: linear-gradient(90deg, #004C54 0%, #006C64 100%);
+                border: 4px solid #A5ACAF;
+                border-radius: 8px;
+                z-index: 290;
+                box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
             `;
             document.getElementById('game-container').appendChild(leftScrum);
 
             const rightScrum = document.createElement('div');
-            rightScrum.innerHTML = '🛡️😤🤬🦅'; // D-Line faces
             rightScrum.style.cssText = `
                 position: absolute; right: -200px; top: ${y - 100}px;
-                font-size: 80px; z-index: 290; transition: transform 0.1s;
+                width: 180px; height: 200px;
+                background: linear-gradient(90deg, #444 0%, #222 100%);
+                border: 4px solid #666;
+                border-radius: 8px;
+                z-index: 290;
+                box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
             `;
             document.getElementById('game-container').appendChild(rightScrum);
 
-            // 3. JALEN HURTS (The Shove from Behind)
+            // 3. JALEN (styled block for the shove)
             const jalen = document.createElement('div');
-            jalen.innerHTML = '👑🦵'; // Jalen leg driving
             jalen.style.cssText = `
                 position: absolute; left: 50%; top: ${y + 50}px;
                 transform: translate(-50%, 0) scale(0);
-                font-size: 100px; z-index: 295;
-                transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                width: 70px; height: 70px;
+                background: #004C54;
+                border: 4px solid #A5ACAF;
+                border-radius: 50%;
+                z-index: 295;
+                transition: transform 0.15s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+                box-shadow: 0 0 20px rgba(0,76,84,0.6);
+                pointer-events: none;
             `;
             document.getElementById('game-container').appendChild(jalen);
 
-            // 4. ANIMATION LOOP
+            // 4. ANIMATION (requestAnimationFrame for smooth motion)
             let progress = 0;
-            const interval = setInterval(() => {
-                progress += 0.04;
+            const travelDist = w / 2 - 40;
 
-                // Move walls in
-                const currentLeftX = -100 + (progress * (w/2 - 40));
-                const currentRightX = (w + 100) - (progress * (w/2 - 40));
+            function animate() {
+                progress += 0.025;
+
+                // Smoothstep easing: slow build, accelerates into impact
+                const eased = progress * progress * (3 - 2 * progress);
+
+                const currentLeftX = -100 + (eased * travelDist);
+                const currentRightX = (w + 100) - (eased * travelDist);
 
                 Body.setPosition(leftWall, { x: currentLeftX, y });
                 Body.setPosition(rightWall, { x: currentRightX, y });
 
-                // Update visuals
-                leftScrum.style.left = (currentLeftX - 150) + 'px';
-                rightScrum.style.right = (w - currentRightX - 150) + 'px';
+                // Update visual positions
+                leftScrum.style.left = (currentLeftX - 90) + 'px';
+                rightScrum.style.right = (w - currentRightX - 90) + 'px';
 
-                // Shake visuals for impact
-                const shake = (Math.random() - 0.5) * 20;
-                leftScrum.style.transform = `translateY(${shake}px)`;
-                rightScrum.style.transform = `translateY(${-shake}px)`;
-
-                // Jalen appears at 50%
+                // Subtle shake as tension builds
                 if (progress > 0.5) {
-                    jalen.style.transform = `translate(-50%, 0) scale(1) translateY(${shake}px)`;
+                    const shake = (Math.random() - 0.5) * (progress * 15);
+                    leftScrum.style.transform = `translateY(${shake}px)`;
+                    rightScrum.style.transform = `translateY(${-shake}px)`;
                 }
 
-                // 5. THE CLIMAX (100% Progress)
-                if (progress >= 1) {
-                    clearInterval(interval);
+                // Jalen appears for the final push
+                if (progress > 0.7) {
+                    jalen.style.transform = 'translate(-50%, 0) scale(1)';
+                }
 
-                    // THE "POP" - Launch Kevin Upwards
-                    Body.applyForce(kevin.torso, kevin.torso.position, { x: 0, y: -0.8 }); // Massive vertical lift
+                // 5. THE SURGE
+                if (progress >= 1) {
+                    // Launch Kevin upward
+                    Body.applyForce(kevin.torso, kevin.torso.position, { x: 0, y: -0.8 });
                     Body.setAngularVelocity(kevin.torso, Math.random() * 0.5);
 
-                    // Visual Effects
-                    showQuote("FIRST DOWNNNN!", kevin.head.position);
+                    // Visual effects
+                    showQuote("FIRST DOWN!", kevin.head.position);
                     triggerScreenShake(30);
-                    createImpactParticles(w/2, y, '#004C54', 50); // Green confetti
+                    createImpactParticles(w / 2, y, '#004C54', 50);
 
                     // Cleanup
                     setTimeout(() => {
                         World.remove(world, [leftWall, rightWall]);
-                        leftScrum.remove();
-                        rightScrum.remove();
-                        jalen.remove();
+                        jalen.style.transform = 'translate(-50%, 0) scale(0)';
+                        setTimeout(() => {
+                            leftScrum.remove();
+                            rightScrum.remove();
+                            jalen.remove();
+                        }, 200);
                     }, 500);
-                }
-            }, 16);
 
-            // Initial impact sound
+                    return; // Exit animation loop
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            requestAnimationFrame(animate);
             playHitSound('tushpush');
         }
         
