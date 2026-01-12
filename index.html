@@ -31,7 +31,7 @@
             min-height: 100vh;
             overflow: auto;
             user-select: none;
-            touch-action: pan-y; /* Allow vertical scrolling, prevent zoom */
+            touch-action: manipulation; /* Allows pinch zoom and panning, removes double-tap zoom delay */
             /* Safe area insets for iPhone notch/dynamic island */
             padding-top: env(safe-area-inset-top);
             padding-right: env(safe-area-inset-right);
@@ -4379,36 +4379,62 @@
         
         // ==================== ZOOM PREVENTION (ALLOW ZOOM OUT ONLY) ====================
 
-        // 1. Block zoom IN, allow zoom OUT
-        let initialScale = 1;
+        // Track the current viewport scale to know if user is zoomed in or out
+        let currentScale = 1;
+        if (window.visualViewport) {
+            currentScale = window.visualViewport.scale;
+            window.visualViewport.addEventListener('resize', () => {
+                currentScale = window.visualViewport.scale;
+            });
+        }
+
+        // 1. Super Aggressive Multi-Tap Prevention
+        // Track all taps within a 1 second window
+        const tapTimes = [];
+        document.addEventListener('touchend', function(e) {
+            const now = Date.now();
+
+            // Remove taps older than 1 second
+            while (tapTimes.length > 0 && now - tapTimes[0] > 1000) {
+                tapTimes.shift();
+            }
+
+            // Add current tap
+            tapTimes.push(now);
+
+            // If more than 1 tap in last 500ms, OR more than 3 taps in last 1 second - BLOCK IT
+            const recentTaps = tapTimes.filter(time => now - time <= 500);
+            if (recentTaps.length > 1 || tapTimes.length > 3) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }, { passive: false, capture: true });
+
+        // 2. Block pinch zoom IN, allow pinch zoom OUT
+        let gestureStartScale = 1;
 
         document.addEventListener('gesturestart', function(e) {
-            initialScale = window.visualViewport ? window.visualViewport.scale : 1;
-        });
+            gestureStartScale = currentScale;
+        }, { passive: false });
 
         document.addEventListener('gesturechange', function(e) {
-            // Only prevent if trying to zoom IN (scale > current scale)
+            // e.scale > 1 means fingers spreading apart (zoom in)
+            // e.scale < 1 means fingers coming together (zoom out)
+            // Only block zoom in (spreading)
             if (e.scale > 1.0) {
                 e.preventDefault();
+                e.stopPropagation();
             }
-            // If e.scale < 1.0, allow it (zooming out)
+            // Let zoom out pass through (e.scale < 1.0)
         }, { passive: false });
 
         document.addEventListener('gestureend', function(e) {
-            // Only prevent if ended zoomed in
+            // Block if ended with zoom in gesture
             if (e.scale > 1.0) {
                 e.preventDefault();
+                e.stopPropagation();
             }
-        }, { passive: false });
-
-        // 2. Block Double-Tap Zoom
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function(e) {
-            const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
-                e.preventDefault();
-            }
-            lastTouchEnd = now;
         }, { passive: false });
 
         // ==================== START ====================
