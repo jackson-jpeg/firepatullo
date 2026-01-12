@@ -1145,52 +1145,63 @@
         function createWalls() {
             const w = render.canvas.width;
             const h = render.canvas.height;
-            const wallThickness = 50;
-            const bottomUIHeight = 120; // Space for arsenal + ticker
+            const wallThickness = 60;
+
+            // Clear existing walls first to prevent duplicates on resize
+            const allBodies = Matter.Composite.allBodies(world);
+            const existingWalls = allBodies.filter(body =>
+                body.isStatic && body.label !== 'kevinHead' && body.label !== 'kevinTorso'
+            );
+            Matter.World.remove(world, existingWalls);
 
             const walls = [
-                // Floor (above the UI controls - keeps Patullo visible)
-                Bodies.rectangle(w/2, h - bottomUIHeight, w, wallThickness, {
+                // Floor (hidden below screen to catch falling objects)
+                Bodies.rectangle(w/2, h + 30, w, 60, {
                     isStatic: true,
                     render: { visible: false },
-                    restitution: CONFIG.BOUNCE
+                    label: 'floor'
                 }),
-                // Left wall (at left edge of visible canvas)
-                Bodies.rectangle(wallThickness/2, h/2, wallThickness, h, {
+                // Left Wall
+                Bodies.rectangle(0 - 20, h/2, 40, h * 2, {
                     isStatic: true,
                     render: { visible: false },
-                    restitution: CONFIG.BOUNCE
+                    label: 'wall'
                 }),
-                // Right wall (at right edge of visible canvas)
-                Bodies.rectangle(w - wallThickness/2, h/2, wallThickness, h, {
+                // Right Wall
+                Bodies.rectangle(w + 20, h/2, 40, h * 2, {
                     isStatic: true,
                     render: { visible: false },
-                    restitution: CONFIG.BOUNCE
-                }),
-                // Ceiling (lenient - allows temporary off-screen at top)
-                Bodies.rectangle(w/2, -wallThickness, w, wallThickness, {
-                    isStatic: true,
-                    render: { visible: false },
-                    restitution: CONFIG.BOUNCE
+                    label: 'wall'
                 })
             ];
 
-            // Arsenal Container - add physics body so projectiles bounce off UI (KEPT for polish)
+            // --- THE ROSTER BOX (UI SHELF) ---
             const arsenalDiv = document.getElementById('arsenal-container');
             if (arsenalDiv) {
-                const arsenalRect = arsenalDiv.getBoundingClientRect();
+                const rect = arsenalDiv.getBoundingClientRect();
                 const canvasRect = render.canvas.getBoundingClientRect();
 
-                // Convert DOM coordinates to canvas coordinates
-                const arsenalX = (arsenalRect.left + arsenalRect.width / 2 - canvasRect.left) * (w / canvasRect.width);
-                const arsenalY = (arsenalRect.top + arsenalRect.height / 2 - canvasRect.top) * (h / canvasRect.height);
-                const arsenalWidth = arsenalRect.width * (w / canvasRect.width);
-                const arsenalHeight = arsenalRect.height * (h / canvasRect.height);
+                // Calculate dynamic position based on where the HTML element actually is
+                // We add padding (20px) to make the hit area slightly larger than the buttons
+                const padding = 20;
 
-                const arsenalBody = Bodies.rectangle(arsenalX, arsenalY, arsenalWidth, arsenalHeight, {
+                // Map DOM coordinates to Canvas coordinates
+                const scaleX = w / canvasRect.width;
+                const scaleY = h / canvasRect.height;
+
+                const centerX = (rect.left + rect.width / 2 - canvasRect.left) * scaleX;
+                const centerY = (rect.top + rect.height / 2 - canvasRect.top) * scaleY;
+                const width = (rect.width + padding) * scaleX;
+                const height = (rect.height + padding) * scaleY;
+
+                const arsenalBody = Bodies.rectangle(centerX, centerY, width, height, {
                     isStatic: true,
-                    render: { visible: false },
-                    restitution: CONFIG.BOUNCE,
+                    render: {
+                        visible: false, // Set to true if you want to debug (see the red box)
+                        fillStyle: 'rgba(255, 0, 0, 0.3)'
+                    },
+                    restitution: 0.2, // Low bounce so he sits on it
+                    friction: 0.8,    // High friction so he doesn't slide off
                     label: 'arsenal-container'
                 });
 
@@ -2452,104 +2463,100 @@
         }
         
         function triggerTushPush() {
-            // Two walls crush from sides
             const w = render.canvas.width;
             const y = kevin.torso.position.y;
+            const crushSpeed = 15;
 
-            const leftWall = Bodies.rectangle(-50, y, 100, 200, { isStatic: true });
-            const rightWall = Bodies.rectangle(w + 50, y, 100, 200, { isStatic: true });
-
+            // 1. PHYSICAL WALLS (The O-Line)
+            const leftWall = Bodies.rectangle(-100, y, 200, 300, {
+                isStatic: true,
+                label: 'push-wall-left'
+            });
+            const rightWall = Bodies.rectangle(w + 100, y, 200, 300, {
+                isStatic: true,
+                label: 'push-wall-right'
+            });
             World.add(world, [leftWall, rightWall]);
 
-            // Create visual O-line players crushing in
-            const leftPlayers = document.createElement('div');
-            leftPlayers.innerHTML = '🏈👨‍💼👨‍💼👨‍💼👨‍💼';
-            leftPlayers.style.cssText = `
-                position: absolute;
-                left: -100px;
-                top: ${y - 50}px;
-                font-size: 50px;
-                z-index: 290;
-                transform: rotate(-15deg);
+            // 2. VISUALS (The Scrum)
+            const leftScrum = document.createElement('div');
+            leftScrum.innerHTML = '🦅🤬😤🛡️'; // O-Line faces
+            leftScrum.style.cssText = `
+                position: absolute; left: -200px; top: ${y - 100}px;
+                font-size: 80px; z-index: 290; transition: transform 0.1s;
             `;
-            document.getElementById('game-container').appendChild(leftPlayers);
+            document.getElementById('game-container').appendChild(leftScrum);
 
-            const rightPlayers = document.createElement('div');
-            rightPlayers.innerHTML = '👨‍💼👨‍💼👨‍💼👨‍💼🏈';
-            rightPlayers.style.cssText = `
-                position: absolute;
-                right: -100px;
-                top: ${y - 50}px;
-                font-size: 50px;
-                z-index: 290;
-                transform: rotate(15deg);
+            const rightScrum = document.createElement('div');
+            rightScrum.innerHTML = '🛡️😤🤬🦅'; // D-Line faces
+            rightScrum.style.cssText = `
+                position: absolute; right: -200px; top: ${y - 100}px;
+                font-size: 80px; z-index: 290; transition: transform 0.1s;
             `;
-            document.getElementById('game-container').appendChild(rightPlayers);
+            document.getElementById('game-container').appendChild(rightScrum);
 
-            // Warning flash
-            const warning = document.createElement('div');
-            warning.textContent = '⚠️ TUSH PUSH! ⚠️';
-            warning.style.cssText = `
-                position: absolute;
-                top: 50px;
-                left: 50%;
-                transform: translateX(-50%);
-                font-family: 'Bebas Neue', sans-serif;
-                font-size: 2rem;
-                color: #FF3333;
-                text-shadow: 2px 2px 0 #000;
-                z-index: 300;
-                animation: warningFlash 0.5s ease infinite;
+            // 3. JALEN HURTS (The Shove from Behind)
+            const jalen = document.createElement('div');
+            jalen.innerHTML = '👑🦵'; // Jalen leg driving
+            jalen.style.cssText = `
+                position: absolute; left: 50%; top: ${y + 50}px;
+                transform: translate(-50%, 0) scale(0);
+                font-size: 100px; z-index: 295;
+                transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             `;
-            document.getElementById('game-container').appendChild(warning);
+            document.getElementById('game-container').appendChild(jalen);
 
-            if (!document.getElementById('warning-flash-style')) {
-                const style = document.createElement('style');
-                style.id = 'warning-flash-style';
-                style.textContent = `
-                    @keyframes warningFlash {
-                        0%, 100% { opacity: 1; }
-                        50% { opacity: 0.3; }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-
-            // Animate walls crushing in
+            // 4. ANIMATION LOOP
             let progress = 0;
             const interval = setInterval(() => {
-                progress += 0.05;
-                const leftX = -50 + progress * (w/2 - 50);
-                const rightX = w + 50 - progress * (w/2 - 50);
+                progress += 0.04;
 
-                Body.setPosition(leftWall, { x: leftX, y });
-                Body.setPosition(rightWall, { x: rightX, y });
+                // Move walls in
+                const currentLeftX = -100 + (progress * (w/2 - 40));
+                const currentRightX = (w + 100) - (progress * (w/2 - 40));
 
-                // Move visual players too
-                leftPlayers.style.left = (leftX - 100) + 'px';
-                rightPlayers.style.right = (w - rightX - 100) + 'px';
+                Body.setPosition(leftWall, { x: currentLeftX, y });
+                Body.setPosition(rightWall, { x: currentRightX, y });
 
-                // Intensify shake as they get closer
+                // Update visuals
+                leftScrum.style.left = (currentLeftX - 150) + 'px';
+                rightScrum.style.right = (w - currentRightX - 150) + 'px';
+
+                // Shake visuals for impact
+                const shake = (Math.random() - 0.5) * 20;
+                leftScrum.style.transform = `translateY(${shake}px)`;
+                rightScrum.style.transform = `translateY(${-shake}px)`;
+
+                // Jalen appears at 50%
                 if (progress > 0.5) {
-                    triggerScreenShake(progress * 20);
-                    // Crushing rumble sound that intensifies
-                    if (progress % 0.2 < 0.05) {
-                        playTone(120 - (progress * 40), 0.1, 'sawtooth', 0.15 + progress * 0.15);
-                    }
+                    jalen.style.transform = `translate(-50%, 0) scale(1) translateY(${shake}px)`;
                 }
 
+                // 5. THE CLIMAX (100% Progress)
                 if (progress >= 1) {
                     clearInterval(interval);
-                    warning.remove();
+
+                    // THE "POP" - Launch Kevin Upwards
+                    Body.applyForce(kevin.torso, kevin.torso.position, { x: 0, y: -0.8 }); // Massive vertical lift
+                    Body.setAngularVelocity(kevin.torso, Math.random() * 0.5);
+
+                    // Visual Effects
+                    showQuote("FIRST DOWNNNN!", kevin.head.position);
+                    triggerScreenShake(30);
+                    createImpactParticles(w/2, y, '#004C54', 50); // Green confetti
+
+                    // Cleanup
                     setTimeout(() => {
                         World.remove(world, [leftWall, rightWall]);
-                        leftPlayers.remove();
-                        rightPlayers.remove();
+                        leftScrum.remove();
+                        rightScrum.remove();
+                        jalen.remove();
                     }, 500);
                 }
-            }, 30);
+            }, 16);
 
-            setTimeout(() => onHitKevin('tushpush', kevin.head.position), 500);
+            // Initial impact sound
+            playHitSound('tushpush');
         }
         
         function triggerDealerChoice() {
