@@ -1117,9 +1117,9 @@
                 }
             }, 2000);
             
-            // Job security regen
+            // Job security regen (don't regen at 0 - let game over trigger cleanly)
             setInterval(() => {
-                if (gameState.jobSecurity < 100) {
+                if (gameState.jobSecurity > 0 && gameState.jobSecurity < 100) {
                     gameState.jobSecurity = Math.min(100, gameState.jobSecurity + CONFIG.JOB_SECURITY_REGEN);
                     updateJobSecurityDisplay();
                 }
@@ -4378,11 +4378,6 @@
         });
         
         // ==================== PREVENT ZOOM ====================
-        // iOS Safari gesture zoom prevention
-        document.addEventListener('gesturestart', e => e.preventDefault());
-        document.addEventListener('gesturechange', e => e.preventDefault());
-        document.addEventListener('gestureend', e => e.preventDefault());
-
         // Prevent double-tap zoom
         let lastTouchEnd = 0;
         document.addEventListener('touchend', e => {
@@ -4392,6 +4387,28 @@
             }
             lastTouchEnd = now;
         }, false);
+
+        // Auto-reset zoom if user accidentally zooms in
+        // Uses visualViewport API to detect zoom and reset it
+        if (window.visualViewport) {
+            let zoomResetTimeout;
+            window.visualViewport.addEventListener('resize', () => {
+                const zoomLevel = window.visualViewport.scale;
+                if (zoomLevel > 1.05) {
+                    // User zoomed in - reset after a brief delay
+                    clearTimeout(zoomResetTimeout);
+                    zoomResetTimeout = setTimeout(() => {
+                        // Reset zoom by updating viewport meta
+                        const viewport = document.querySelector('meta[name="viewport"]');
+                        const content = viewport.getAttribute('content');
+                        viewport.setAttribute('content', 'width=device-width, initial-scale=0.99');
+                        setTimeout(() => {
+                            viewport.setAttribute('content', content);
+                        }, 50);
+                    }, 300);
+                }
+            });
+        }
 
         // ==================== START ====================
         document.addEventListener('DOMContentLoaded', runLoadingScreen);
