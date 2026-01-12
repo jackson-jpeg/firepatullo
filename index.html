@@ -548,12 +548,15 @@
             }
             
             .highway-sign {
-                top: 85px;
-                padding: 5px 10px;
+                top: 110px;
+                padding: 6px 10px;
+                z-index: 150;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.5);
             }
 
             .highway-sign-text {
-                font-size: 0.55rem;
+                font-size: 0.6rem;
+                white-space: nowrap;
             }
         }
 
@@ -4374,6 +4377,22 @@
             }
         });
         
+        // ==================== PREVENT ZOOM ====================
+        // iOS Safari gesture zoom prevention
+        document.addEventListener('gesturestart', e => e.preventDefault());
+        document.addEventListener('gesturechange', e => e.preventDefault());
+        document.addEventListener('gestureend', e => e.preventDefault());
+
+        // Prevent double-tap zoom
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', e => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
         // ==================== START ====================
         document.addEventListener('DOMContentLoaded', runLoadingScreen);
     </script>
