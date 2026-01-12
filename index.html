@@ -64,7 +64,13 @@
             opacity: 0;
             pointer-events: none;
         }
-        
+
+        /* General hidden class safety - ensure hidden overlays don't block clicks */
+        .hidden {
+            opacity: 0;
+            pointer-events: none !important; /* Force clicks to pass through hidden elements */
+        }
+
         .loading-title {
             font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(2rem, 8vw, 5rem);
@@ -118,8 +124,8 @@
             display: block;
             width: 100%;
             height: 100%;
-            pointer-events: auto !important; /* Ensure canvas is always clickable */
-            touch-action: manipulation; /* Disables double-tap zoom natively */
+            pointer-events: all; /* Explicitly catch all pointer events */
+            touch-action: none; /* DISABLES ALL BROWSER ZOOMING/PANNING ON CANVAS */
             -webkit-user-select: none;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
@@ -1163,7 +1169,10 @@
                 })
             ];
 
-            // Arsenal Container - add physics body for the UI element
+            // Arsenal Container - DISABLED: physics body was blocking clicks
+            // The buttons are HTML elements on top of the canvas; we don't need a physics body
+            // If miscalculated, it creates an invisible shield blocking the game
+            /*
             const arsenalDiv = document.getElementById('arsenal-container');
             if (arsenalDiv) {
                 const arsenalRect = arsenalDiv.getBoundingClientRect();
@@ -1184,6 +1193,7 @@
 
                 walls.push(arsenalBody);
             }
+            */
 
             World.add(world, walls);
         }
@@ -1609,6 +1619,9 @@
         }
         
         function onPointerDown(e) {
+            // PREVENT DEFAULT ALWAYS on the canvas to stop text selection/scrolling
+            e.preventDefault();
+
             resetActivity(); // Track user activity
             const pos = getPointerPos(e);
 
@@ -1618,10 +1631,6 @@
             for (let body of bodies) {
                 if (Matter.Bounds.contains(body.bounds, pos)) {
                     hitKevin = true;
-
-                    // Only preventDefault when we're actually grabbing Kevin
-                    // This prevents the browser from interfering with the drag
-                    e.preventDefault();
 
                     // EASTER EGG: Triple-click on head for secret
                     if (body === kevin.head) {
